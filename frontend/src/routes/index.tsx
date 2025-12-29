@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/use-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -210,9 +211,9 @@ function HomePage() {
               </div>
               <h3 className="text-3xl font-bold">your data, your control</h3>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
-                events are published to your own personal data server, not
-                locked in some company's huge data lake. they're portable,
-                permanent, and tied to your identity.
+                events live on your personal data server, not locked in big
+                cloud. we index them for discovery, but you own the source of
+                truth. update from another app, and we'll update them here too.
               </p>
             </div>
           </div>
@@ -250,39 +251,37 @@ function HomePage() {
               <Calendar className="h-12 w-12 text-amber-600 dark:text-amber-400" />
               <h3 className="text-2xl font-bold">rsvp with one tap</h3>
               <p className="text-muted-foreground leading-relaxed">
-                going, interested, or not going. your response is signed and
-                verifiable.
+                going, interested, or not going. your response is signed,
+                verifiable, and under your control.
               </p>
+            </div>
+            <div className="flex items-center gap-3 bg-background/50 rounded-lg p-3">
+              <Avatar className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <AvatarImage src={PFP_URLS[3]} />
+                <AvatarFallback>
+                  <Check className="h-4 w-4 text-amber-600 dark:text-amber-400 stroke-[3]" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0 text-base">
+                <span className="font-medium truncate">alice.example.com</span>{" "}
+                is <span className="text-emerald-400">going</span>
+              </div>
             </div>
           </div>
 
-          {/* stats block */}
-          <div className="md:col-span-7 border border-border rounded-2xl p-8 md:p-12 bg-card min-h-[280px] flex items-center">
-            <div className="grid grid-cols-2 gap-8 w-full">
-              <div>
-                <div className="text-5xl md:text-6xl font-bold text-primary mb-2">
-                  100%
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  decentralized hosting
-                </div>
+          {/* platform risk */}
+          <div className="md:col-span-7 bg-muted/50 border border-border rounded-2xl p-8 md:p-12 flex flex-col justify-between min-h-[280px]">
+            <div className="space-y-4">
+              <div className="text-6xl md:text-7xl font-bold text-primary/20">
+                02
               </div>
-              <div>
-                <div className="text-5xl md:text-6xl font-bold text-primary mb-2">
-                  0
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  vendor lock-in
-                </div>
-              </div>
-              <div className="col-span-2">
-                <div className="text-5xl md:text-6xl font-bold text-primary mb-2">
-                  ∞
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  events you can create and share
-                </div>
-              </div>
+              <h3 className="text-3xl font-bold">no platform risk</h3>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                because events live on your personal data server, they don't
+                completely disappear when a company shuts down or changes
+                direction. your event history is on your PDS and travels with
+                your identity across the network.
+              </p>
             </div>
           </div>
         </div>
@@ -291,7 +290,7 @@ function HomePage() {
       {/* how it works - alternating two-pane layouts */}
       <section className="container py-32 overflow-hidden">
         <h2 className="text-5xl md:text-6xl font-bold mb-8 lg:text-center">
-          from idea to event
+          from idea to irl (or virtual)
         </h2>
         <p className="text-xl md:text-2xl text-muted-foreground lg:text-center mb-24 max-w-3xl mx-auto">
           transform your plans into discoverable, verifiable events.
