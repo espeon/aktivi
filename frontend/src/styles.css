@@ -3,7 +3,7 @@
 
 @import "tw-animate-css";
 
-@custom-variant dark (&:is[data-theme="dark"]);
+@custom-variant dark (&:where(.dark, .dark *));
 
 code {
   font-family:
