@@ -30,6 +30,14 @@ export default function Footer() {
               <p className="font-semibold">Legal</p>
               <ul className="mt-2 space-y-2">
                 <li>
+                  <Link
+                    to="/legal/content-guidelines"
+                    className="hover:underline"
+                  >
+                    Content Guidelines
+                  </Link>
+                </li>
+                <li>
                   <Link to="/legal/privacy-policy" className="hover:underline">
                     Privacy Policy
                   </Link>

@@ -16,6 +16,7 @@ import { Route as OauthPreRouteImport } from './routes/oauth.pre'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
+import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -52,11 +53,17 @@ const LegalPrivacyPolicyRoute = LegalPrivacyPolicyRouteImport.update({
   path: '/legal/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalContentGuidelinesRoute = LegalContentGuidelinesRouteImport.update({
+  id: '/legal/content-guidelines',
+  path: '/legal/content-guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  LegalContentGuidelinesRoute: typeof LegalContentGuidelinesRoute
   LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
   LegalTosRoute: typeof LegalTosRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalPrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/content-guidelines': {
+      id: '/legal/content-guidelines'
+      path: '/legal/content-guidelines'
+      fullPath: '/legal/content-guidelines'
+      preLoaderRoute: typeof LegalContentGuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  LegalContentGuidelinesRoute: LegalContentGuidelinesRoute,
   LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
   LegalTosRoute: LegalTosRoute,
   OauthCallbackRoute: OauthCallbackRoute,
