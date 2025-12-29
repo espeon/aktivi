@@ -38,7 +38,7 @@ function HomePage() {
           {/* left pane - messaging */}
           <div className="space-y-10">
             <div className="space-y-6">
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9]">
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[0.9]">
                 plan activities
                 <br />
                 with your network
@@ -94,7 +94,7 @@ function HomePage() {
                       <Calendar className="h-7 w-7 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-2xl leading-tight mb-1">
+                      <h3 className="font-semibold text-2xl leading-tight mb-1">
                         Seattle Mechanical Keyboards Meetup
                       </h3>
                       <p className="text-muted-foreground">
@@ -196,7 +196,7 @@ function HomePage() {
 
       {/* how it works - asymmetric bento */}
       <section className="container py-24">
-        <h2 className="text-4xl md:text-5xl font-bold mb-16 max-w-2xl">
+        <h2 className="text-4xl md:text-5xl font-semibold mb-16 max-w-2xl">
           events that live
           <br />
           with your identity
@@ -206,10 +206,12 @@ function HomePage() {
           {/* large feature - decentralized */}
           <div className="md:col-span-7 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-border rounded-2xl p-8 md:p-12 flex flex-col justify-between min-h-[320px]">
             <div className="space-y-4">
-              <div className="text-6xl md:text-7xl font-bold text-primary/20">
+              <div className="text-6xl md:text-7xl font-semibold text-primary/20">
                 01
               </div>
-              <h3 className="text-3xl font-bold">your data, your control</h3>
+              <h3 className="text-3xl font-semibold">
+                your data, your control
+              </h3>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
                 events live on your personal data server, not locked in big
                 cloud. we index them for discovery, but you own the source of
@@ -223,7 +225,9 @@ function HomePage() {
             <div className="space-y-6">
               <Users className="h-12 w-12 text-primary" />
               <div className="space-y-3">
-                <h3 className="text-2xl font-bold">built for your network</h3>
+                <h3 className="text-2xl font-semibold">
+                  built for your network
+                </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   discover events from people you already follow. no algorithm,
                   no ads, just your community.
@@ -249,7 +253,7 @@ function HomePage() {
           <div className="md:col-span-5 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-border rounded-2xl p-8 flex flex-col justify-between min-h-[280px]">
             <div className="space-y-4">
               <Calendar className="h-12 w-12 text-amber-600 dark:text-amber-400" />
-              <h3 className="text-2xl font-bold">rsvp with one tap</h3>
+              <h3 className="text-2xl font-semibold">rsvp with one tap</h3>
               <p className="text-muted-foreground leading-relaxed">
                 going, interested, or not going. your response is signed,
                 verifiable, and under your control.
@@ -272,10 +276,10 @@ function HomePage() {
           {/* platform risk */}
           <div className="md:col-span-7 bg-muted/50 border border-border rounded-2xl p-8 md:p-12 flex flex-col justify-between min-h-[280px]">
             <div className="space-y-4">
-              <div className="text-6xl md:text-7xl font-bold text-primary/20">
+              <div className="text-6xl md:text-7xl font-semibold text-primary/20">
                 02
               </div>
-              <h3 className="text-3xl font-bold">no platform risk</h3>
+              <h3 className="text-3xl font-semibold">no platform risk</h3>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
                 because events live on your personal data server, they don't
                 completely disappear when a company shuts down or changes
@@ -289,7 +293,7 @@ function HomePage() {
 
       {/* how it works - alternating two-pane layouts */}
       <section className="container py-32 overflow-hidden">
-        <h2 className="text-5xl md:text-6xl font-bold mb-8 lg:text-center">
+        <h2 className="text-5xl md:text-6xl font-semibold mb-8 lg:text-center">
           from idea to irl (or virtual)
         </h2>
         <p className="text-xl md:text-2xl text-muted-foreground lg:text-center mb-24 max-w-3xl mx-auto">
@@ -303,11 +307,11 @@ function HomePage() {
             {/* left - description */}
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-semibold shadow-lg">
                   1
                 </div>
                 <div>
-                  <h3 className="text-3xl md:text-4xl font-bold">
+                  <h3 className="text-3xl md:text-4xl font-semibold">
                     create your event
                   </h3>
                   <p className="text-muted-foreground">
@@ -429,11 +433,11 @@ function HomePage() {
             {/* right - description */}
             <div className="space-y-6 lg:order-2 order-1">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl font-semibold shadow-lg">
                   2
                 </div>
                 <div>
-                  <h3 className="text-3xl md:text-4xl font-bold">
+                  <h3 className="text-3xl md:text-4xl font-semibold">
                     your network discovers it
                   </h3>
                   <p className="text-muted-foreground">
@@ -456,11 +460,11 @@ function HomePage() {
             {/* left - description */}
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-semibold shadow-lg">
                   3
                 </div>
                 <div>
-                  <h3 className="text-3xl md:text-4xl font-bold">
+                  <h3 className="text-3xl md:text-4xl font-semibold">
                     track who's coming
                   </h3>
                   <p className="text-muted-foreground">verifiable RSVPing</p>
@@ -532,7 +536,7 @@ function HomePage() {
               futureproof by design
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6">
               built on open standards
             </h2>
 
@@ -570,7 +574,7 @@ function HomePage() {
 
       {/* comparison section - split screen */}
       <section className="container py-24">
-        <h2 className="text-4xl md:text-5xl font-bold mb-16 text-center max-w-3xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-semibold mb-16 text-center max-w-3xl mx-auto">
           choose the atmosphere
         </h2>
 
@@ -591,7 +595,7 @@ function HomePage() {
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-8">
                   <Building2 className="h-10 w-10 text-muted-foreground" />
-                  <h3 className="text-3xl font-bold text-muted-foreground">
+                  <h3 className="text-3xl font-semibold text-muted-foreground">
                     traditional
                   </h3>
                 </div>
@@ -643,14 +647,14 @@ function HomePage() {
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-8">
                   <Globe className="h-10 w-10 text-primary" />
-                  <h3 className="text-3xl font-bold">aktivi</h3>
+                  <h3 className="text-3xl font-semibold">aktivi</h3>
                 </div>
 
                 <div className="space-y-5">
                   <div className="flex items-start gap-4">
                     <Check className="h-6 w-6 text-primary mt-0.5 flex-shrink-0 stroke-[3]" />
                     <div>
-                      <p className="font-bold text-foreground mb-1">
+                      <p className="font-semibold text-foreground mb-1">
                         you own your data
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -662,7 +666,7 @@ function HomePage() {
                   <div className="flex items-start gap-4">
                     <Check className="h-6 w-6 text-primary mt-0.5 flex-shrink-0 stroke-[3]" />
                     <div>
-                      <p className="font-bold text-foreground mb-1">
+                      <p className="font-semibold text-foreground mb-1">
                         network-based discovery
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -673,7 +677,7 @@ function HomePage() {
                   <div className="flex items-start gap-4">
                     <Check className="h-6 w-6 text-primary mt-0.5 flex-shrink-0 stroke-[3]" />
                     <div>
-                      <p className="font-bold text-foreground mb-1">
+                      <p className="font-semibold text-foreground mb-1">
                         permanent & verifiable
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -691,7 +695,7 @@ function HomePage() {
       {/* cta section */}
       <section className="container py-24">
         <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 rounded-3xl p-12 md:p-16 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-4xl md:text-5xl font-semibold mb-6">
             ready to plan something?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">

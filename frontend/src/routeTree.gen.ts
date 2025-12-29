@@ -14,6 +14,8 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OauthPreRouteImport } from './routes/oauth.pre'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
+import { Route as LegalTosRouteImport } from './routes/legal.tos'
+import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -40,11 +42,23 @@ const OauthCallbackRoute = OauthCallbackRouteImport.update({
   path: '/oauth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalTosRoute = LegalTosRouteImport.update({
+  id: '/legal/tos',
+  path: '/legal/tos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyPolicyRoute = LegalPrivacyPolicyRouteImport.update({
+  id: '/legal/privacy-policy',
+  path: '/legal/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
 }
@@ -52,6 +66,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
 }
@@ -60,21 +76,47 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
+  fullPaths:
+    | '/'
+    | '/events'
+    | '/login'
+    | '/legal/privacy-policy'
+    | '/legal/tos'
+    | '/oauth/callback'
+    | '/oauth/pre'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
-  id: '__root__' | '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
+  to:
+    | '/'
+    | '/events'
+    | '/login'
+    | '/legal/privacy-policy'
+    | '/legal/tos'
+    | '/oauth/callback'
+    | '/oauth/pre'
+  id:
+    | '__root__'
+    | '/'
+    | '/events'
+    | '/login'
+    | '/legal/privacy-policy'
+    | '/legal/tos'
+    | '/oauth/callback'
+    | '/oauth/pre'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
+  LegalTosRoute: typeof LegalTosRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   OauthPreRoute: typeof OauthPreRoute
 }
@@ -116,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/tos': {
+      id: '/legal/tos'
+      path: '/legal/tos'
+      fullPath: '/legal/tos'
+      preLoaderRoute: typeof LegalTosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy-policy': {
+      id: '/legal/privacy-policy'
+      path: '/legal/privacy-policy'
+      fullPath: '/legal/privacy-policy'
+      preLoaderRoute: typeof LegalPrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,6 +179,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
+  LegalTosRoute: LegalTosRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   OauthPreRoute: OauthPreRoute,
 }
