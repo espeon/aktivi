@@ -16,4 +16,7 @@ Cargo.lock
 *.swp
 *.swo
 *~
+
+# lexicons
 vendored/**
+frontend/src/lex
