@@ -14,7 +14,8 @@ We encourage users to share content and engage in ways that reflect positive and
 * Follows all applicable laws and regulations.
 * Respects others and promoting kindness and fairness.
 * Shares accurate and respectful information.
-* Champions social morality, professional ethics, family virtues, and personal integrity; to honor public order and decency
+* Champions good ethics, virtues, and personal integrity; honor public order and propriety, and maintain social harmony
+  * Note: This may include respectful engagement with civic institutions, including peaceful protesting, where laws allow for it.
 * Encourages healthy, constructive, and uplifting communication.
 
 ---
