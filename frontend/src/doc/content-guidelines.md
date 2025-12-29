@@ -1,6 +1,4 @@
 
-# Community Guidelines
-
 Dear Users,
 
 Welcome to aktivi! In pursuit of cultivating an authentic, positive, and diverse online environment, we kindly request all users to comply with the following Community Guidelines to help maintain a healthy digital ecosystem.
