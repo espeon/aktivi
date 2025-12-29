@@ -1,7 +1,7 @@
 # database setup and management
 
 # database connection string
-db_url := env_var_or_default("DATABASE_URL", "postgres://chulla:chulla@localhost:5433/chulla")
+db_url := env_var_or_default("DATABASE_URL", "postgres://aktivi:aktivi@localhost:5433/aktivi")
 
 # initialize the database with schema
 db-init:
@@ -45,7 +45,7 @@ test:
 
 # import a user's calendar data
 import DID:
-    cd backend && DATABASE_URL={{db_url}} cargo run --bin chulla-cli -- import --did {{DID}}
+    cd backend && DATABASE_URL={{db_url}} cargo run --bin aktivi-cli -- import --did {{DID}}
 
 # clean build artifacts
 clean:
@@ -53,3 +53,6 @@ clean:
 
 lexgen-rs:
     jacquard-codegen --input ./lex --output ./lex-rs
+
+lexgen-ts:
+    cd frontend && pnpm run lexgen

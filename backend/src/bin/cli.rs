@@ -1,6 +1,5 @@
+use aktivi::backfill;
 use anyhow::Result;
-use chulla::backfill;
-use chulla::ingest::{EventIngestor, ProfileIngestor, RsvpIngestor};
 use clap::{Parser, Subcommand};
 use futures::stream::{self, StreamExt};
 use sqlx::postgres::PgPoolOptions;
@@ -11,8 +10,8 @@ use std::sync::{
 use tracing::{error, info};
 
 #[derive(Parser)]
-#[command(name = "chulla-cli")]
-#[command(about = "chulla management CLI", long_about = None)]
+#[command(name = "aktivi-cli")]
+#[command(about = "aktivi management CLI", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -42,14 +41,14 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "chulla=info,chulla_cli=info".into()),
+                .unwrap_or_else(|_| "aktivi=info,chulla_cli=info".into()),
         )
         .init();
 
     let cli = Cli::parse();
 
     let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://chulla:chulla@localhost:5433/chulla".to_string());
+        .unwrap_or_else(|_| "postgres://aktivi:aktivi@localhost:5433/aktivi".to_string());
 
     info!("connecting to database");
     let pool = PgPoolOptions::new()
@@ -60,11 +59,7 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Import { did } => {
             info!("importing calendar data for {}", did);
-            let event_ingestor = EventIngestor::new(pool.clone());
-            let rsvp_ingestor = RsvpIngestor::new(pool.clone());
-            let profile_ingestor = ProfileIngestor::new(pool.clone());
-            backfill::backfill_user(&did, &event_ingestor, &rsvp_ingestor, &profile_ingestor)
-                .await?;
+            backfill::backfill_user(&did, &pool).await?;
             info!("import complete");
         }
         Commands::FullBackfill {
@@ -72,38 +67,30 @@ async fn main() -> Result<()> {
             concurrency,
         } => {
             let collection =
-                collection.unwrap_or_else(|| "community.lexicon.calendar.event".to_string());
+                collection.unwrap_or_else(|| "community.lexicon.calendar.rsvp".to_string());
             info!("starting full backfill for collection: {}", collection);
             info!("concurrency: {}", concurrency);
 
             let dids = backfill::fetch_all_dids(&collection).await?;
             info!("found {} DIDs to backfill", dids.len());
 
-            let event_ingestor = Arc::new(EventIngestor::new(pool.clone()));
-            let rsvp_ingestor = Arc::new(RsvpIngestor::new(pool.clone()));
-            let profile_ingestor = Arc::new(ProfileIngestor::new(pool.clone()));
-
+            let pool = Arc::new(pool);
             let success_count = Arc::new(AtomicUsize::new(0));
             let error_count = Arc::new(AtomicUsize::new(0));
             let total = dids.len();
 
             stream::iter(dids)
                 .map(|did| {
-                    let event_ingestor = event_ingestor.clone();
-                    let rsvp_ingestor = rsvp_ingestor.clone();
-                    let profile_ingestor = profile_ingestor.clone();
+                    let pool = pool.clone();
                     let success_count = success_count.clone();
                     let error_count = error_count.clone();
 
                     async move {
-                        match backfill::backfill_user(
-                            &did,
-                            &event_ingestor,
-                            &rsvp_ingestor,
-                            &profile_ingestor,
-                        )
-                        .await
-                        {
+                        if did == "did:plc:vsnj4aaxyatiht4spdht2q2t" {
+                            // skip known bad DID
+                            info!("skipping backfill for specified excluded DID: {}", did);
+                        }
+                        match backfill::backfill_user(&did, &pool).await {
                             Ok(_) => {
                                 let successes = success_count.fetch_add(1, Ordering::SeqCst) + 1;
                                 let errors = error_count.load(Ordering::SeqCst);

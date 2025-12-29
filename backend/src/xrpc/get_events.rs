@@ -258,7 +258,7 @@ async fn fetch_bsky_profile(
     let client = reqwest::Client::new();
     let response = client
         .get(&url)
-        .header("User-Agent", "chulla/0.1.0")
+        .header("User-Agent", "aktivi/0.1.0")
         .send()
         .await?;
 

@@ -1,15 +1,12 @@
 use anyhow::{Context, Result};
-use jacquard_api::community_lexicon::calendar::{event::Event, rsvp::Rsvp};
 use jacquard_common::types::value;
 use lex_rs::co_aktivi::actor::profile::Profile;
+use lex_rs::community_lexicon::calendar::{event::Event, rsvp::Rsvp};
 use repo_stream::{DiskBuilder, Driver, DriverBuilder};
-use rocketman::{ingestion::LexiconIngestor, types::event::Event as JetstreamEvent};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use sqlx::PgPool;
 use std::io::Cursor;
 use tracing::{info, warn};
-
-use crate::ingest::{EventIngestor, ProfileIngestor, RsvpIngestor};
 
 const EVENT_COLLECTION: &str = "community.lexicon.calendar.event";
 const RSVP_COLLECTION: &str = "community.lexicon.calendar.rsvp";
@@ -76,12 +73,7 @@ pub async fn resolve_pds(did: &str) -> Result<String> {
 }
 
 /// Download and process a CAR file from a user's AT Protocol repo
-pub async fn backfill_user(
-    did: &str,
-    event_ingestor: &EventIngestor,
-    rsvp_ingestor: &RsvpIngestor,
-    profile_ingestor: &ProfileIngestor,
-) -> Result<()> {
+pub async fn backfill_user(did: &str, pool: &PgPool) -> Result<()> {
     // resolve DID to PDS endpoint
     let pds = resolve_pds(did).await?;
     info!("resolved PDS: {}", pds);
@@ -117,101 +109,160 @@ pub async fn backfill_user(
 
     match DriverBuilder::new()
         .with_mem_limit_mb(100)
-        .with_block_processor(|block| block.to_vec())
+        //.with_block_processor(|block| block.to_vec())
         .load_car(reader)
         .await?
     {
         Driver::Memory(_commit, mut driver) => {
             // process records in chunks
-            while let Some(chunk) = driver.next_chunk(256).await? {
+            while let Some(chunk) = driver.next_chunk(2048).await? {
                 for (rkey, block_data) in chunk {
                     if rkey.starts_with(EVENT_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Event>(json_value) {
-                                Ok(_ev) => {
-                                    // convert to rocketman event format
-                                    let jetstream_event = create_event_message(
-                                        did,
-                                        EVENT_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
+                        match value::from_cbor::<Event>(&block_data) {
+                            Ok(event) => {
+                                let rkey_tail = rkey.split('/').last().unwrap_or(&rkey);
+                                let uri =
+                                    format!("at://{}/{}/{}", did, EVENT_COLLECTION, rkey_tail);
+                                let cid = compute_cid(&block_data)?;
 
-                                    if let Err(e) = event_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest event {}: {}", rkey, e);
+                                let created_at = event.created_at.as_ref();
+                                let starts_at = event.starts_at.as_ref().map(|dt| dt.as_ref());
+                                let ends_at = event.ends_at.as_ref().map(|dt| dt.as_ref());
+                                let locations = event
+                                    .locations
+                                    .as_ref()
+                                    .map(|locs| serde_json::to_value(locs))
+                                    .transpose()?;
+                                let uris = event
+                                    .uris
+                                    .as_ref()
+                                    .map(|uris| serde_json::to_value(uris))
+                                    .transpose()?;
+
+                                if let Err(e) = sqlx::query!(
+                                        r#"
+                                        INSERT INTO events (uri, cid, did, rkey, name, description, created_at, starts_at, ends_at, mode, status, locations, uris)
+                                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                                        ON CONFLICT (uri) DO UPDATE SET
+                                            cid = EXCLUDED.cid,
+                                            name = EXCLUDED.name,
+                                            description = EXCLUDED.description,
+                                            created_at = EXCLUDED.created_at,
+                                            starts_at = EXCLUDED.starts_at,
+                                            ends_at = EXCLUDED.ends_at,
+                                            mode = EXCLUDED.mode,
+                                            status = EXCLUDED.status,
+                                            locations = EXCLUDED.locations,
+                                            uris = EXCLUDED.uris
+                                        "#,
+                                        uri,
+                                        cid,
+                                        did,
+                                        rkey_tail,
+                                        event.name.as_ref(),
+                                        event.description.as_ref().map(|d| d.as_ref()),
+                                        created_at,
+                                        starts_at,
+                                        ends_at,
+                                        event.mode.as_ref().map(|m| m.as_ref()),
+                                        event.status.as_ref().map(|s| s.as_ref()),
+                                        locations,
+                                        uris,
+                                    )
+                                    .execute(pool)
+                                    .await {
+                                        warn!("failed to insert event {}: {}", uri, e);
                                     } else {
                                         event_count += 1;
                                     }
-                                }
-                                Err(e) => warn!("failed to parse event from {}: {}", rkey, e),
                             }
+                            Err(e) => warn!("failed to parse event from {}: {}", rkey, e),
                         }
                     } else if rkey.starts_with(RSVP_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Rsvp>(json_value.clone()) {
-                                Ok(_rsvp) => {
-                                    let jetstream_event = create_event_message(
-                                        did,
-                                        RSVP_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
+                        match value::from_cbor::<Rsvp>(&block_data) {
+                            Ok(rsvp) => {
+                                let rkey_tail = rkey.split('/').last().unwrap_or(&rkey);
+                                let uri = format!("at://{}/{}/{}", did, RSVP_COLLECTION, rkey_tail);
+                                let cid = compute_cid(&block_data)?;
 
-                                    if let Err(e) = rsvp_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest rsvp {}: {}", rkey, e);
+                                // Extract uri and cid from the strongRef Data
+                                let (subject_uri, subject_cid) = match &rsvp.subject {
+                                    value::Data::Object(obj) => {
+                                        let uri = obj.get("uri").and_then(|v| match v {
+                                            value::Data::String(s) => Some(s.as_ref()),
+                                            _ => None,
+                                        });
+                                        let cid = obj.get("cid").and_then(|v| match v {
+                                            value::Data::String(s) => Some(s.as_ref()),
+                                            _ => None,
+                                        });
+                                        (uri, cid)
+                                    }
+                                    _ => (None, None),
+                                };
+
+                                if let Err(e) = sqlx::query!(
+                                        r#"
+                                        INSERT INTO rsvps (uri, cid, did, rkey, subject_uri, subject_cid, status)
+                                        VALUES ($1, $2, $3, $4, $5, $6, $7)
+                                        ON CONFLICT (uri) DO UPDATE SET
+                                            cid = EXCLUDED.cid,
+                                            subject_uri = EXCLUDED.subject_uri,
+                                            subject_cid = EXCLUDED.subject_cid,
+                                            status = EXCLUDED.status
+                                        "#,
+                                        uri,
+                                        cid,
+                                        did,
+                                        rkey_tail,
+                                        subject_uri,
+                                        subject_cid,
+                                        rsvp.status.as_ref(),
+                                    )
+                                    .execute(pool)
+                                    .await {
+                                        warn!("failed to insert rsvp {}: {}", uri, e);
                                     } else {
                                         rsvp_count += 1;
                                     }
-                                }
-                                Err(e) => {
-                                    warn!(
-                                        "failed to parse rsvp from {}: {}, data: {:?}",
-                                        rkey, e, json_value
-                                    );
-                                }
                             }
-                        } else {
-                            warn!("failed to decode CBOR for rsvp {}", rkey);
+                            Err(e) => warn!("failed to parse rsvp from {} (inmem): {}", rkey, e),
                         }
                     } else if rkey.starts_with(PROFILE_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Profile>(json_value.clone()) {
-                                Ok(_profile) => {
-                                    let jetstream_event = create_event_message(
+                        match value::from_cbor::<Profile>(&block_data) {
+                                Ok(profile) => {
+                                    if let Err(e) = sqlx::query!(
+                                        r#"
+                                        INSERT INTO profiles (did, display_name, description, avatar, banner)
+                                        VALUES ($1, $2, $3, $4, $5)
+                                        ON CONFLICT (did) DO UPDATE SET
+                                            display_name = EXCLUDED.display_name,
+                                            description = EXCLUDED.description,
+                                            avatar = EXCLUDED.avatar,
+                                            banner = EXCLUDED.banner,
+                                            updated_at = NOW()
+                                        "#,
                                         did,
-                                        PROFILE_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
-
-                                    if let Err(e) = profile_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest profile for {}: {}", did, e);
+                                        profile.display_name.as_ref().map(|n| n.as_ref()),
+                                        profile.description.as_ref().map(|d| d.as_ref()),
+                                        profile.avatar.as_ref().map(|_| "blob_ref"),
+                                        profile.banner.as_ref().map(|_| "blob_ref"),
+                                    )
+                                    .execute(pool)
+                                    .await {
+                                        warn!("failed to insert profile for {}: {}", did, e);
                                     } else {
                                         profile_count += 1;
                                     }
                                 }
-                                Err(e) => {
-                                    warn!(
-                                        "failed to parse profile from {}: {}, data: {:?}",
-                                        rkey, e, json_value
-                                    );
-                                }
+                                Err(e) => warn!("failed to parse profile from {}: {}", rkey, e),
                             }
-                        } else {
-                            warn!("failed to decode CBOR for profile {}", rkey);
-                        }
                     }
                 }
             }
         }
         Driver::Disk(paused) => {
-            info!("repo exceeds memory limit, using disk storage");
+            info!("repo {} exceeds memory limit, using disk storage", did);
 
             // create temporary directory for disk storage
             let temp_dir = std::env::temp_dir().join(format!("repo-{}", did.replace(':', "-")));
@@ -226,84 +277,144 @@ pub async fn backfill_user(
             while let Some(chunk) = driver.next_chunk(256).await? {
                 for (rkey, block_data) in chunk {
                     if rkey.starts_with(EVENT_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Event>(json_value) {
-                                Ok(_event) => {
-                                    let jetstream_event = create_event_message(
-                                        did,
-                                        EVENT_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
+                        match value::from_cbor::<Event>(&block_data) {
+                            Ok(event) => {
+                                let rkey_tail = rkey.split('/').last().unwrap_or(&rkey);
+                                let uri =
+                                    format!("at://{}/{}/{}", did, EVENT_COLLECTION, rkey_tail);
+                                let cid = compute_cid(&block_data)?;
 
-                                    if let Err(e) = event_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest event {}: {}", rkey, e);
+                                let created_at = event.created_at.as_ref();
+                                let starts_at = event.starts_at.as_ref().map(|dt| dt.as_ref());
+                                let ends_at = event.ends_at.as_ref().map(|dt| dt.as_ref());
+                                let locations = event
+                                    .locations
+                                    .as_ref()
+                                    .map(|locs| serde_json::to_value(locs))
+                                    .transpose()?;
+                                let uris = event
+                                    .uris
+                                    .as_ref()
+                                    .map(|uris| serde_json::to_value(uris))
+                                    .transpose()?;
+
+                                if let Err(e) = sqlx::query!(
+                                        r#"
+                                        INSERT INTO events (uri, cid, did, rkey, name, description, created_at, starts_at, ends_at, mode, status, locations, uris)
+                                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                                        ON CONFLICT (uri) DO UPDATE SET
+                                            cid = EXCLUDED.cid,
+                                            name = EXCLUDED.name,
+                                            description = EXCLUDED.description,
+                                            created_at = EXCLUDED.created_at,
+                                            starts_at = EXCLUDED.starts_at,
+                                            ends_at = EXCLUDED.ends_at,
+                                            mode = EXCLUDED.mode,
+                                            status = EXCLUDED.status,
+                                            locations = EXCLUDED.locations,
+                                            uris = EXCLUDED.uris
+                                        "#,
+                                        uri,
+                                        cid,
+                                        did,
+                                        rkey_tail,
+                                        event.name.as_ref(),
+                                        event.description.as_ref().map(|d| d.as_ref()),
+                                        created_at,
+                                        starts_at,
+                                        ends_at,
+                                        event.mode.as_ref().map(|m| m.as_ref()),
+                                        event.status.as_ref().map(|s| s.as_ref()),
+                                        locations,
+                                        uris,
+                                    )
+                                    .execute(pool)
+                                    .await {
+                                        warn!("failed to insert event {}: {}", uri, e);
                                     } else {
                                         event_count += 1;
                                     }
-                                }
-                                Err(e) => warn!("failed to parse event from {}: {}", rkey, e),
                             }
+                            Err(e) => warn!("failed to parse event from {}: {}", rkey, e),
                         }
                     } else if rkey.starts_with(RSVP_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Rsvp>(json_value.clone()) {
-                                Ok(_rsvp) => {
-                                    let jetstream_event = create_event_message(
-                                        did,
-                                        RSVP_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
+                        match value::from_cbor::<Rsvp>(&block_data) {
+                            Ok(rsvp) => {
+                                let rkey_tail = rkey.split('/').last().unwrap_or(&rkey);
+                                let uri = format!("at://{}/{}/{}", did, RSVP_COLLECTION, rkey_tail);
+                                let cid = compute_cid(&block_data)?;
 
-                                    if let Err(e) = rsvp_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest rsvp {}: {}", rkey, e);
+                                // Extract uri and cid from the strongRef Data
+                                let (subject_uri, subject_cid) = match &rsvp.subject {
+                                    value::Data::Object(obj) => {
+                                        let uri = obj.get("uri").and_then(|v| match v {
+                                            value::Data::String(s) => Some(s.as_ref()),
+                                            _ => None,
+                                        });
+                                        let cid = obj.get("cid").and_then(|v| match v {
+                                            value::Data::String(s) => Some(s.as_ref()),
+                                            _ => None,
+                                        });
+                                        (uri, cid)
+                                    }
+                                    _ => (None, None),
+                                };
+
+                                if let Err(e) = sqlx::query!(
+                                        r#"
+                                        INSERT INTO rsvps (uri, cid, did, rkey, subject_uri, subject_cid, status)
+                                        VALUES ($1, $2, $3, $4, $5, $6, $7)
+                                        ON CONFLICT (uri) DO UPDATE SET
+                                            cid = EXCLUDED.cid,
+                                            subject_uri = EXCLUDED.subject_uri,
+                                            subject_cid = EXCLUDED.subject_cid,
+                                            status = EXCLUDED.status
+                                        "#,
+                                        uri,
+                                        cid,
+                                        did,
+                                        rkey_tail,
+                                        subject_uri,
+                                        subject_cid,
+                                        rsvp.status.as_ref(),
+                                    )
+                                    .execute(pool)
+                                    .await {
+                                        warn!("failed to insert rsvp {}: {}", uri, e);
                                     } else {
                                         rsvp_count += 1;
                                     }
-                                }
-                                Err(e) => {
-                                    warn!(
-                                        "failed to parse rsvp from {}: {}, data: {:?}",
-                                        rkey, e, json_value
-                                    );
-                                }
                             }
-                        } else {
-                            warn!("failed to decode CBOR for rsvp {}", rkey);
+                            Err(e) => warn!("failed to parse rsvp from {} (disk): {}", rkey, e),
                         }
                     } else if rkey.starts_with(PROFILE_COLLECTION) {
-                        if let Ok(json_value) =
-                            serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)
-                        {
-                            match value::from_json_value::<Profile>(json_value.clone()) {
-                                Ok(_profile) => {
-                                    let jetstream_event = create_event_message(
-                                        did,
-                                        PROFILE_COLLECTION,
-                                        &rkey,
-                                        block_data.clone(),
-                                    )?;
-
-                                    if let Err(e) = profile_ingestor.ingest(jetstream_event).await {
-                                        warn!("failed to ingest profile for {}: {}", did, e);
-                                    } else {
-                                        profile_count += 1;
-                                    }
-                                }
-                                Err(e) => {
-                                    warn!(
-                                        "failed to parse profile from {}: {}, data: {:?}",
-                                        rkey, e, json_value
-                                    );
+                        match value::from_cbor::<Profile>(&block_data) {
+                            Ok(profile) => {
+                                if let Err(e) = sqlx::query!(
+                                    r#"
+                                    INSERT INTO profiles (did, display_name, description, avatar, banner)
+                                    VALUES ($1, $2, $3, $4, $5)
+                                    ON CONFLICT (did) DO UPDATE SET
+                                        display_name = EXCLUDED.display_name,
+                                        description = EXCLUDED.description,
+                                        avatar = EXCLUDED.avatar,
+                                        banner = EXCLUDED.banner,
+                                        updated_at = NOW()
+                                    "#,
+                                    did,
+                                    profile.display_name.as_ref().map(|n| n.as_ref()),
+                                    profile.description.as_ref().map(|d| d.as_ref()),
+                                    profile.avatar.as_ref().map(|_| "blob_ref"),
+                                    profile.banner.as_ref().map(|_| "blob_ref"),
+                                )
+                                .execute(pool)
+                                .await {
+                                    warn!("failed to insert profile for {}: {}", did, e);
+                                } else {
+                                    profile_count += 1;
                                 }
                             }
-                        } else {
-                            warn!("failed to decode CBOR for profile {}", rkey);
+                            Err(e) => warn!("failed to parse profile from {}: {}", rkey, e),
                         }
                     }
                 }
@@ -322,36 +433,6 @@ pub async fn backfill_user(
     );
 
     Ok(())
-}
-
-fn create_event_message(
-    did: &str,
-    collection: &str,
-    rkey: &str,
-    block_data: Vec<u8>,
-) -> Result<JetstreamEvent<Value>> {
-    use rocketman::types::event::{Commit, Kind, Operation};
-
-    let json_value = serde_ipld_dagcbor::from_slice::<serde_json::Value>(&block_data)?;
-
-    // compute CID from block data
-    let cid = compute_cid(&block_data)?;
-
-    Ok(JetstreamEvent {
-        did: did.to_string(),
-        time_us: None,
-        kind: Kind::Commit,
-        commit: Some(Commit {
-            rev: "unknown".to_string(),
-            operation: Operation::Create,
-            collection: collection.to_string(),
-            rkey: rkey.split('/').last().unwrap_or(rkey).to_string(),
-            record: Some(json_value),
-            cid: Some(cid),
-        }),
-        identity: None,
-        account: None,
-    })
 }
 
 fn compute_cid(block_data: &[u8]) -> Result<String> {

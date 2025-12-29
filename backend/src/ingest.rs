@@ -1,7 +1,8 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use jacquard_api::community_lexicon::calendar::{event::Event, rsvp::Rsvp};
-use jacquard_common::types::value;
+use jacquard::types::value;
+use lex_rs::community_lexicon::calendar::{event::Event, rsvp::Rsvp};
+
 use rocketman::{ingestion::LexiconIngestor, types::event::Event as JetstreamEvent};
 use serde_json::Value;
 use sqlx::PgPool;
@@ -117,6 +118,22 @@ impl LexiconIngestor for RsvpIngestor {
 
         debug!("ingesting rsvp: {}", uri);
 
+        // Extract uri and cid from the strongRef Data
+        let (subject_uri, subject_cid) = match &rsvp.subject {
+            value::Data::Object(obj) => {
+                let uri = obj.get("uri").and_then(|v| match v {
+                    value::Data::String(s) => Some(s.as_ref()),
+                    _ => None,
+                });
+                let cid = obj.get("cid").and_then(|v| match v {
+                    value::Data::String(s) => Some(s.as_ref()),
+                    _ => None,
+                });
+                (uri, cid)
+            }
+            _ => (None, None),
+        };
+
         sqlx::query!(
             r#"
             INSERT INTO rsvps (uri, cid, did, rkey, subject_uri, subject_cid, status)
@@ -131,8 +148,8 @@ impl LexiconIngestor for RsvpIngestor {
             cid,
             &message.did,
             commit.rkey,
-            rsvp.subject.uri.as_ref(),
-            rsvp.subject.cid.as_ref(),
+            subject_uri,
+            subject_cid,
             rsvp.status.as_ref(),
         )
         .execute(&self.pool)
@@ -166,7 +183,6 @@ impl LexiconIngestor for ProfileIngestor {
         };
 
         let profile = value::from_json_value::<lex_rs::co_aktivi::actor::profile::Profile>(record)?;
-
         debug!("ingesting profile: {}", message.did);
 
         sqlx::query!(

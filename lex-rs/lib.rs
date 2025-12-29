@@ -10,3 +10,6 @@ pub mod co_aktivi;
 
 #[cfg(feature = "com_example")]
 pub mod com_example;
+
+#[cfg(feature = "community_lexicon")]
+pub mod community_lexicon;

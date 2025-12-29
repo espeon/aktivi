@@ -1,5 +1,5 @@
+use aktivi::{jetstream::JetstreamConsumer, oatproxy, xrpc, AppState};
 use axum::Router;
-use chulla::{jetstream::JetstreamConsumer, oatproxy, xrpc, AppState};
 use jacquard_axum::IntoRouter;
 use lex_rs::co_aktivi::{
     actor::{
@@ -25,14 +25,14 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "chulla=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "aktivi=debug,tower_http=debug".into()),
         )
         .init();
 
     info!("okie!");
 
     let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://chulla:chulla@localhost:5433/chulla".to_string());
+        .unwrap_or_else(|_| "postgres://aktivi:aktivi@localhost:5433/aktivi".to_string());
 
     info!("connecting to database: {}", database_url);
     let pool = PgPoolOptions::new()
