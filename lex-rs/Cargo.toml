@@ -1,0 +1,22 @@
+[package]
+name = "lex-rs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+jacquard-common = { workspace = true }
+jacquard-derive = { workspace = true }
+jacquard-lexicon = { workspace = true }
+miette = "7.6.0"
+rustversion = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "2.0"
+unicode-segmentation = "1.12"
+
+[features]
+default = ["com_example", "co_aktivi"]
+com_example = []
+co_aktivi = []

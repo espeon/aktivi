@@ -1,0 +1,85 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.event.getRSVPs",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get RSVPs for a specific event",
+      "parameters": {
+        "type": "params",
+        "required": ["uri"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the event record"
+          },
+          "status": {
+            "type": "string",
+            "description": "Filter by RSVP status",
+            "knownValues": [
+              "community.lexicon.calendar.rsvp#interested",
+              "community.lexicon.calendar.rsvp#going",
+              "community.lexicon.calendar.rsvp#notgoing"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50,
+            "description": "Maximum number of RSVPs to return"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["rsvps"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "rsvps": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#rsvpView"
+              }
+            }
+          }
+        }
+      }
+    },
+    "rsvpView": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "status", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "author": {
+          "type": "ref",
+          "ref": "co.aktivi.actor.defs#profileViewBasic"
+        },
+        "status": {
+          "type": "string"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    }
+  }
+}

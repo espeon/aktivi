@@ -1,0 +1,18 @@
+# rust
+target/
+Cargo.lock
+
+# database
+*.db
+*.db-shm
+*.db-wal
+
+# env
+.env
+
+# editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

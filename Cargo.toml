@@ -1,0 +1,14 @@
+[workspace]
+members = ["backend", "lex-rs"]
+resolver = "2"
+
+[workspace.dependencies]
+jacquard = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-api = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-axum = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-common = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-identity = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-derive = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-lexicon = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-oauth = { git = "https://tangled.org/nonbinary.computer/jacquard" }
+jacquard-oatproxy = { path = "../jacquard-oatproxy" }

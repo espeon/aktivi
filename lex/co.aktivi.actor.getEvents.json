@@ -1,0 +1,51 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.actor.getEvents",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get events created by a specific actor",
+      "parameters": {
+        "type": "params",
+        "required": ["actor"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "The actor (DID or handle) to get events for"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50,
+            "description": "Maximum number of events to return"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["events"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "co.aktivi.event.defs#eventView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

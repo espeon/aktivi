@@ -1,0 +1,95 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.event.definitions",
+  "defs": {
+    "eventViewBasic": {
+      "type": "object",
+      "required": ["uri", "cid", "name"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "eventView": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "author": {
+          "type": "ref",
+          "ref": "co.aktivi.actor.defs#profileViewBasic"
+        },
+        "record": {
+          "type": "unknown"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "eventViewDetailed": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "author": {
+          "type": "ref",
+          "ref": "co.aktivi.actor.defs#profileView"
+        },
+        "record": {
+          "type": "unknown"
+        },
+        "rsvpCount": {
+          "type": "integer"
+        },
+        "rsvps": {
+          "type": "ref",
+          "ref": "#rsvpsByStatus"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "rsvpsByStatus": {
+      "type": "object",
+      "description": "RSVPs grouped by status (coming, maybe, not-coming, etc.)",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "ref",
+          "ref": "co.aktivi.actor.defs#profileView"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.event.getEventView",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get detailed view of an event",
+      "parameters": {
+        "type": "params",
+        "required": ["uri"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the event record"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["event"],
+          "properties": {
+            "event": {
+              "type": "ref",
+              "ref": "co.aktivi.event.defs#eventViewDetailed"
+            }
+          }
+        }
+      }
+    }
+  }
+}

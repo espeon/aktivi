@@ -1,0 +1,80 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.actor.getRSVPs",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get RSVPs for a specific actor",
+      "parameters": {
+        "type": "params",
+        "required": ["actor"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "The actor (DID or handle) to get RSVPs for"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50,
+            "description": "Maximum number of RSVPs to return"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["rsvps"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "rsvps": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#rsvpView"
+              }
+            }
+          }
+        }
+      }
+    },
+    "rsvpView": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "record", "event", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "author": {
+          "type": "ref",
+          "ref": "co.aktivi.actor.defs#profileViewBasic"
+        },
+        "record": {
+          "type": "unknown"
+        },
+        "event": {
+          "type": "ref",
+          "ref": "co.aktivi.event.defs#eventViewBasic"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    }
+  }
+}

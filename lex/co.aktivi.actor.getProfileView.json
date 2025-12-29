@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.actor.getProfileView",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get detailed profile view for an actor",
+      "parameters": {
+        "type": "params",
+        "required": ["actor"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "The actor (DID or handle) to get profile for"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["profile"],
+          "properties": {
+            "profile": {
+              "type": "ref",
+              "ref": "co.aktivi.actor.defs#profileView"
+            }
+          }
+        }
+      }
+    }
+  }
+}
