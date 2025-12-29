@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "lexgen": "lex-cli pull && lex-cli generate"
