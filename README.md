@@ -91,9 +91,7 @@ cargo run --bin aktivi-cli -- backfill <did>
 
 ## lexicons
 
-event types are defined in `lex/community.lexicon.calendar.*.json`:
-- `event` - calendar events with name, description, datetime, location
-- `rsvp` - user responses to events (going, interested, not going)
+install lexicon tooling with `just lexgen-rs-install`, and generate lexicons with `just lexgen`
 
 ## development
 
@@ -109,7 +107,3 @@ frontend:
 cd frontend
 npm run dev
 ```
-
-## license
-
-MIT

@@ -51,6 +51,13 @@ import DID:
 clean:
     cd backend && cargo clean
 
+# generate lexer code for Rust and TypeScript
+lexgen:
+    just lexgen-rs && just lexgen-ts
+
+lexgen-rs-install:
+    cargo install jacquard-lexgen
+
 lexgen-rs:
     jacquard-codegen --input ./lex --output ./lex-rs
 
