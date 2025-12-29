@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OauthPreRouteImport } from './routes/oauth.pre'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 
 const LoginRoute = LoginRouteImport.update({
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthPreRoute = OauthPreRouteImport.update({
+  id: '/oauth/pre',
+  path: '/oauth/pre',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthCallbackRoute = OauthCallbackRouteImport.update({
   id: '/oauth/callback',
   path: '/oauth/callback',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/oauth/pre': typeof OauthPreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/oauth/pre': typeof OauthPreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/oauth/pre': typeof OauthPreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/events' | '/login' | '/oauth/callback'
+  fullPaths: '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/events' | '/login' | '/oauth/callback'
-  id: '__root__' | '/' | '/events' | '/login' | '/oauth/callback'
+  to: '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
+  id: '__root__' | '/' | '/events' | '/login' | '/oauth/callback' | '/oauth/pre'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
+  OauthPreRoute: typeof OauthPreRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oauth/pre': {
+      id: '/oauth/pre'
+      path: '/oauth/pre'
+      fullPath: '/oauth/pre'
+      preLoaderRoute: typeof OauthPreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/oauth/callback': {
       id: '/oauth/callback'
       path: '/oauth/callback'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
   OauthCallbackRoute: OauthCallbackRoute,
+  OauthPreRoute: OauthPreRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

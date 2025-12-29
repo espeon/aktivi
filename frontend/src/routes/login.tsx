@@ -1,8 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -10,28 +8,41 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/lib/use-auth";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
 function LoginPage() {
-  const [handle, setHandle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { signIn, isLoading } = useAuth();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignIn = async () => {
+    setIsLoading(true);
     setError("");
 
     try {
-      await signIn(handle);
-      // OAuth will redirect, so we might not reach here
-      navigate({ to: "/" });
+      // fetch client metadata to get redirect_uri
+      const response = await fetch("/client-metadata.json");
+      const metadata = await response.json();
+      const clientUri = metadata.client_uri;
+
+      // generate nonce
+      const nonce = crypto.randomUUID();
+
+      // store nonce for verification
+      sessionStorage.setItem("ih_auth_nonce", nonce);
+
+      // build ih-auth URL
+      const authUrl = new URL("https://ih-auth.pages.dev/auth");
+      authUrl.searchParams.set("redirect_uri", `${clientUri}/oauth/pre`);
+      authUrl.searchParams.set("nonce", nonce);
+
+      // redirect to ih-auth
+      window.location.assign(authUrl.toString());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "failed to sign in");
+      setError(err instanceof Error ? err.message : "failed to start sign in");
+      setIsLoading(false);
     }
   };
 
@@ -41,27 +52,20 @@ function LoginPage() {
         <CardHeader>
           <CardTitle>sign in to aktivi</CardTitle>
           <CardDescription>
-            enter your bluesky handle to get started
+            authenticate with your internet handle
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="handle">bluesky handle</Label>
-              <Input
-                id="handle"
-                type="text"
-                placeholder="username.bsky.social"
-                value={handle}
-                onChange={(e) => setHandle(e.target.value)}
-                required
-              />
-              {error && <p className="text-sm text-destructive">{error}</p>}
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "connecting..." : "continue"}
+          <div className="space-y-4">
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button
+              onClick={handleSignIn}
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "redirecting..." : "sign in"}
             </Button>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>
