@@ -127,6 +127,7 @@ We may review reports and monitor activity to enforce these guidelines. Dependin
 * Report unlawful content to the appropriate parties
 
 Appeals are welcome, however abuse of the appeal system may lead to consequences. These include access to appeal submissions permanently removed.
+
 ---
 
 ## 8. Reporting
