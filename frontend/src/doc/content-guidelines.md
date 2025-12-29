@@ -3,7 +3,7 @@ Dear Users,
 
 Welcome to aktivi! In pursuit of cultivating an authentic, positive, and diverse online environment, we kindly request all users to comply with the following Community Guidelines to help maintain a healthy digital ecosystem.
 
----
+
 
 ## 1. Our Values
 
@@ -16,7 +16,7 @@ We encourage users to share content and engage in ways that reflect positive and
   * Note: This may include respectful engagement with civic institutions, including peaceful protesting, where laws allow for it.
 * Encourages healthy, constructive, and uplifting communication.
 
----
+
 
 ## 2. What Is Not Allowed
 
@@ -35,7 +35,7 @@ To keep the community safe and welcoming, content is prohibited if it:
 * Violates intellectual property rights or other lawful rights of others.
 
 
----
+
 
 ## 3. **Safety of Minors**
 
@@ -49,7 +49,7 @@ We maintain a zero-tolerance approach to content that exploits, endangers, or ta
 
 We may restrict features for accounts flagged as belonging to or targeting minors, as applicable to relevant laws.
 
----
+
 
 ## 4a. Commercial and Promotional Content
 
@@ -66,7 +66,7 @@ You **can’t**:
 * Sell risky or regulated goods/services (e.g. drugs, medical treatments, financial schemes)
 * Misrepresent paid content or native advertising
 * Link or divert users to spammy, unsafe, or unmoderated platforms
----
+
 
 ## 4b. **No Spam, Scams, or Manipulation**
 
@@ -80,7 +80,7 @@ We want a high-signal community. Please don’t ruin it with low-effort or bad-f
 
 We’ll take action against any attempt to manipulate trust systems.
 
----
+
 
 ## 5. Respectful Interaction
 
@@ -102,7 +102,7 @@ We want all our users to stay safe. We don't allow:
 * Dangerous acts that may incite imitation (e.g. reckless driving, fire misuse)
 * Dangerous or hazardous activities without obvious safety precautions or warnings
 
----
+
 
 ## 6. **No Sexually Explicit Content or Exploitation**
 
@@ -114,7 +114,7 @@ This is not an adult platform. While we respect sexual expression, we do not all
 * Promotion of sexual services
 * Links to explicit material hosted off-platform
 
----
+
 
 ## 7. Enforcement
 
@@ -128,13 +128,13 @@ We may review reports and monitor activity to enforce these guidelines. Dependin
 
 Appeals are welcome, however abuse of the appeal system may lead to consequences. These include access to appeal submissions permanently removed.
 
----
+
 
 ## 8. Reporting
 
 We encourage users to report any content or behavior that violates these guidelines. Reports will be handled confidentially. We strive for consistent and fair enforcement, and may release periodic transparency updates where possible.
 
----
+
 
 ## 9. Updates
 
