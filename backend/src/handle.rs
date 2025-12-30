@@ -63,7 +63,7 @@ async fn check_handle_resolution(handle: &str, expected_did: &str) -> Result<boo
 use serde::{Deserialize, Serialize};
 
 // should be same as regex /^did:[a-z]+:[\S\s]+/
-fn is_did(did: &str) -> bool {
+pub fn is_did(did: &str) -> bool {
     let parts: Vec<&str> = did.split(':').collect();
 
     if parts.len() != 3 {

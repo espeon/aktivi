@@ -211,3 +211,30 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+}
+
+::view-transition-old(root) {
+  animation-name: fade-out-blur;
+}
+
+::view-transition-new(root) {
+  animation-name: fade-in-blur;
+}
+
+@keyframes fade-out-blur {
+  to {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes fade-in-blur {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}

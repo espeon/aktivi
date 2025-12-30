@@ -6,11 +6,11 @@ use jacquard_common::{
     CowStr, Data,
 };
 use lex_rs::co_aktivi::{
-    actor::ProfileViewBasic,
-    event::{
-        get_events::{GetEventsOutput, GetEventsRequest},
-        EventView, EventsByDate,
+    actor::{
+        get_timeline::{GetTimelineOutput, GetTimelineRequest},
+        ProfileViewBasic,
     },
+    event::{EventView, EventsByDate},
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -19,8 +19,9 @@ use crate::{profile::ProfileRecord, AppState};
 #[axum::debug_handler]
 pub async fn handle(
     State(state): State<Arc<AppState>>,
-    ExtractXrpc(req): ExtractXrpc<GetEventsRequest>,
-) -> Result<Json<GetEventsOutput<'static>>, StatusCode> {
+    ExtractXrpc(req): ExtractXrpc<GetTimelineRequest>,
+) -> Result<Json<GetTimelineOutput<'static>>, StatusCode> {
+    let actor = req.actor.as_ref();
     let limit = req.limit.unwrap_or(50).min(100) as i64;
     let offset = req
         .cursor
@@ -28,32 +29,74 @@ pub async fn handle(
         .and_then(|c| c.as_ref().parse::<i64>().ok())
         .unwrap_or(0);
 
-    // convert timezone offset from minutes to interval string for postgres
-    // e.g., -480 minutes (PST) becomes '-08:00:00'
+    // resolve actor to DID (could be handle or DID)
+    let did = if crate::handle::is_did(actor) {
+        actor.to_string()
+    } else {
+        // check if we have this handle cached in the database
+        let cached =
+            sqlx::query_scalar::<_, String>("SELECT did FROM identities WHERE handle = $1 LIMIT 1")
+                .bind(actor)
+                .fetch_optional(&state.pool)
+                .await
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        if let Some(cached_did) = cached {
+            cached_did
+        } else {
+            // resolve from PLC/bluesky
+            match crate::handle::resolve_identity(actor, "https://public.api.bsky.app").await {
+                Ok(identity) => {
+                    // cache the handle->DID mapping
+                    let _ = sqlx::query!(
+                        r#"
+                        INSERT INTO identities (did, handle, seq)
+                        VALUES ($1, $2, 0)
+                        ON CONFLICT (did) DO UPDATE SET handle = EXCLUDED.handle
+                        "#,
+                        &identity.did,
+                        actor as &str
+                    )
+                    .execute(&state.pool)
+                    .await;
+                    identity.did
+                }
+                Err(_) => {
+                    // if resolution fails, treat as DID (will likely fail on query)
+                    actor.to_string()
+                }
+            }
+        }
+    };
+
     let timezone_offset_seconds = req.timezone_offset.unwrap_or(0) * 60;
 
+    // query both events hosted by the actor and events they've RSVPed to
     let events = sqlx::query!(
         r#"
-        SELECT
-            uri,
-            cid,
-            did,
-            name,
-            description,
-            created_at,
-            starts_at,
-            ends_at,
-            mode,
-            status,
-            locations,
-            uris,
-            indexed_at,
-            DATE((starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date
-        FROM events
-        WHERE starts_at > NOW()
-        ORDER BY starts_at ASC
-        LIMIT $1 OFFSET $2
+        SELECT DISTINCT
+            e.uri,
+            e.cid,
+            e.did,
+            e.name,
+            e.description,
+            e.created_at,
+            e.starts_at,
+            e.ends_at,
+            e.mode,
+            e.status,
+            e.locations,
+            e.uris,
+            e.indexed_at,
+            DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $4)) as event_date
+        FROM events e
+        LEFT JOIN rsvps r ON e.uri = r.subject_uri AND r.did = $1
+        WHERE (e.did = $1 OR r.did IS NOT NULL)
+          AND e.starts_at > NOW()
+        ORDER BY e.starts_at ASC
+        LIMIT $2 OFFSET $3
         "#,
+        &did,
         limit,
         offset,
         timezone_offset_seconds as f64
@@ -96,7 +139,7 @@ pub async fn handle(
         })
         .collect();
 
-    // fall back to bsky profiles if any not found in local profiles table
+    // fall back to bsky profiles if any not found
     let missing_dids: Vec<&String> = dids
         .iter()
         .filter(|did| !profile_map.contains_key(*did))
@@ -104,30 +147,24 @@ pub async fn handle(
 
     if !missing_dids.is_empty() {
         for did in missing_dids {
-            // check cache first
             let profile = if let Some(cached_profile) = state.profile_cache.get(did).await {
                 cached_profile
             } else {
-                // fetch from bsky api and validate handle
                 let fetched =
                     match crate::profile::fetch_bsky_profile(did, &state.handle_validity_cache)
                         .await
                     {
                         Ok(profile) => profile,
-                        Err(_) => {
-                            // if bsky api fails, create a minimal profile with just the did
-                            ProfileRecord {
-                                did: did.clone(),
-                                handle: None,
-                                display_name: None,
-                                description: None,
-                                avatar: None,
-                                banner: None,
-                            }
-                        }
+                        Err(_) => ProfileRecord {
+                            did: did.clone(),
+                            handle: None,
+                            display_name: None,
+                            description: None,
+                            avatar: None,
+                            banner: None,
+                        },
                     };
 
-                // cache the result
                 state
                     .profile_cache
                     .insert(did.clone(), fetched.clone())
@@ -219,7 +256,7 @@ pub async fn handle(
         None
     };
 
-    Ok(Json(GetEventsOutput {
+    Ok(Json(GetTimelineOutput {
         cursor,
         events_by_date: events_by_date_output,
         extra_data: None,

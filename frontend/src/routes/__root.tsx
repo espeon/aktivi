@@ -10,9 +10,7 @@ export const Route = createRootRoute({
   component: () => (
     <Providers>
       <Header />
-      <div className="animate-in fade-in duration-200">
-        <Outlet />
-      </div>
+      <Outlet />
       <TanStackDevtools
         config={{
           position: "bottom-right",

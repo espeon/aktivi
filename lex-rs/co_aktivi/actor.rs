@@ -8,6 +8,7 @@
 pub mod get_events;
 pub mod get_profile_view;
 pub mod get_rsv_ps;
+pub mod get_timeline;
 pub mod profile;
 
 #[jacquard_derive::lexicon]
@@ -24,25 +25,25 @@ pub mod profile;
 pub struct ProfileView<'a> {
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub avatar: Option<jacquard_common::types::string::Uri<'a>>,
+    pub avatar: std::option::Option<jacquard_common::types::string::Uri<'a>>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub banner: Option<jacquard_common::types::string::Uri<'a>>,
+    pub banner: std::option::Option<jacquard_common::types::string::Uri<'a>>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub description: Option<jacquard_common::CowStr<'a>>,
+    pub description: std::option::Option<jacquard_common::CowStr<'a>>,
     #[serde(borrow)]
     pub did: jacquard_common::types::string::Did<'a>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub display_name: Option<jacquard_common::CowStr<'a>>,
+    pub display_name: std::option::Option<jacquard_common::CowStr<'a>>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub handle: Option<jacquard_common::types::string::Handle<'a>>,
+    pub handle: std::option::Option<jacquard_common::types::string::Handle<'a>>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
-    pub indexed_at: Option<jacquard_common::types::string::Datetime>,
+    pub indexed_at: std::option::Option<jacquard_common::types::string::Datetime>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
-    pub rsvp_count: Option<i64>,
+    pub rsvp_count: std::option::Option<i64>,
 }
 
 pub mod profile_view_state {
@@ -636,15 +637,15 @@ impl<'a> ::jacquard_lexicon::schema::LexiconSchema for ProfileView<'a> {
 pub struct ProfileViewBasic<'a> {
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub avatar: Option<jacquard_common::types::string::Uri<'a>>,
+    pub avatar: std::option::Option<jacquard_common::types::string::Uri<'a>>,
     #[serde(borrow)]
     pub did: jacquard_common::types::string::Did<'a>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub display_name: Option<jacquard_common::CowStr<'a>>,
+    pub display_name: std::option::Option<jacquard_common::CowStr<'a>>,
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub handle: Option<jacquard_common::types::string::Handle<'a>>,
+    pub handle: std::option::Option<jacquard_common::types::string::Handle<'a>>,
 }
 
 pub mod profile_view_basic_state {

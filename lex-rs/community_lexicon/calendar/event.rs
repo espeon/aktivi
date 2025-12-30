@@ -77,32 +77,36 @@ pub struct Event<'a> {
     /// The description of the event.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub description: Option<jacquard_common::CowStr<'a>>,
+    pub description: std::option::Option<jacquard_common::CowStr<'a>>,
     /// Client-declared timestamp when the event ends.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
-    pub ends_at: Option<jacquard_common::types::string::Datetime>,
+    pub ends_at: std::option::Option<jacquard_common::types::string::Datetime>,
     /// The locations where the event takes place.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub locations: Option<Vec<EventLocationsItem<'a>>>,
+    pub locations: std::option::Option<Vec<EventLocationsItem<'a>>>,
     /// The attendance mode of the event.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub mode: Option<crate::community_lexicon::calendar::event::Mode<'a>>,
+    pub mode: std::option::Option<crate::community_lexicon::calendar::event::Mode<'a>>,
     /// The name of the event.
     #[serde(borrow)]
     pub name: jacquard_common::CowStr<'a>,
     /// Client-declared timestamp when the event starts.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
-    pub starts_at: Option<jacquard_common::types::string::Datetime>,
+    pub starts_at: std::option::Option<jacquard_common::types::string::Datetime>,
     /// The status of the event.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub status: Option<crate::community_lexicon::calendar::event::Status<'a>>,
+    pub status: std::option::Option<
+        crate::community_lexicon::calendar::event::Status<'a>,
+    >,
     /// URIs associated with the event.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub uris: Option<Vec<crate::community_lexicon::calendar::event::Uri<'a>>>,
+    pub uris: std::option::Option<
+        Vec<crate::community_lexicon::calendar::event::Uri<'a>>,
+    >,
 }
 
 pub mod event_state {
@@ -115,37 +119,37 @@ pub mod event_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
-        type CreatedAt;
         type Name;
+        type CreatedAt;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
-        type CreatedAt = Unset;
         type Name = Unset;
-    }
-    ///State transition - sets the `created_at` field to Set
-    pub struct SetCreatedAt<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetCreatedAt<S> {}
-    impl<S: State> State for SetCreatedAt<S> {
-        type CreatedAt = Set<members::created_at>;
-        type Name = S::Name;
+        type CreatedAt = Unset;
     }
     ///State transition - sets the `name` field to Set
     pub struct SetName<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetName<S> {}
     impl<S: State> State for SetName<S> {
-        type CreatedAt = S::CreatedAt;
         type Name = Set<members::name>;
+        type CreatedAt = S::CreatedAt;
+    }
+    ///State transition - sets the `created_at` field to Set
+    pub struct SetCreatedAt<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetCreatedAt<S> {}
+    impl<S: State> State for SetCreatedAt<S> {
+        type Name = S::Name;
+        type CreatedAt = Set<members::created_at>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
-        ///Marker type for the `created_at` field
-        pub struct created_at(());
         ///Marker type for the `name` field
         pub struct name(());
+        ///Marker type for the `created_at` field
+        pub struct created_at(());
     }
 }
 
@@ -368,8 +372,8 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
 impl<'a, S> EventBuilder<'a, S>
 where
     S: event_state::State,
-    S::CreatedAt: event_state::IsSet,
     S::Name: event_state::IsSet,
+    S::CreatedAt: event_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> Event<'a> {
@@ -437,6 +441,14 @@ impl<'a> Event<'a> {
 pub enum EventLocationsItem<'a> {
     #[serde(rename = "community.lexicon.calendar.event#uri")]
     Uri(Box<crate::community_lexicon::calendar::event::Uri<'a>>),
+    #[serde(rename = "community.lexicon.location.address")]
+    Address(Box<crate::community_lexicon::location::address::Address<'a>>),
+    #[serde(rename = "community.lexicon.location.fsq")]
+    Fsq(Box<crate::community_lexicon::location::fsq::Fsq<'a>>),
+    #[serde(rename = "community.lexicon.location.geo")]
+    Geo(Box<crate::community_lexicon::location::geo::Geo<'a>>),
+    #[serde(rename = "community.lexicon.location.hthree")]
+    Hthree(Box<crate::community_lexicon::location::hthree::Hthree<'a>>),
 }
 
 /// Typed wrapper for GetRecord response with this collection's record type.
@@ -1174,7 +1186,7 @@ pub struct Uri<'a> {
     /// The display name of the URI.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
-    pub name: Option<jacquard_common::CowStr<'a>>,
+    pub name: std::option::Option<jacquard_common::CowStr<'a>>,
     #[serde(borrow)]
     pub uri: jacquard_common::types::string::Uri<'a>,
 }

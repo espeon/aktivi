@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UserHandleRouteImport } from './routes/user.$handle'
 import { Route as OauthPreRouteImport } from './routes/oauth.pre'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
+import { Route as EventsCreateRouteImport } from './routes/events.create'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -31,6 +33,11 @@ const EventsRoute = EventsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserHandleRoute = UserHandleRouteImport.update({
+  id: '/user/$handle',
+  path: '/user/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OauthPreRoute = OauthPreRouteImport.update({
@@ -58,37 +65,48 @@ const LegalContentGuidelinesRoute = LegalContentGuidelinesRouteImport.update({
   path: '/legal/content-guidelines',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsCreateRoute = EventsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => EventsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
+  '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
+  '/user/$handle': typeof UserHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
+  '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
+  '/user/$handle': typeof UserHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
+  '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
+  '/user/$handle': typeof UserHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,42 +114,49 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
     | '/oauth/pre'
+    | '/user/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/events'
     | '/login'
+    | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
     | '/oauth/pre'
+    | '/user/$handle'
   id:
     | '__root__'
     | '/'
     | '/events'
     | '/login'
+    | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
     | '/oauth/pre'
+    | '/user/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EventsRoute: typeof EventsRoute
+  EventsRoute: typeof EventsRouteWithChildren
   LoginRoute: typeof LoginRoute
   LegalContentGuidelinesRoute: typeof LegalContentGuidelinesRoute
   LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
   LegalTosRoute: typeof LegalTosRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   OauthPreRoute: typeof OauthPreRoute
+  UserHandleRoute: typeof UserHandleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -155,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/$handle': {
+      id: '/user/$handle'
+      path: '/user/$handle'
+      fullPath: '/user/$handle'
+      preLoaderRoute: typeof UserHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/oauth/pre': {
@@ -192,18 +224,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalContentGuidelinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/create': {
+      id: '/events/create'
+      path: '/create'
+      fullPath: '/events/create'
+      preLoaderRoute: typeof EventsCreateRouteImport
+      parentRoute: typeof EventsRoute
+    }
   }
 }
 
+interface EventsRouteChildren {
+  EventsCreateRoute: typeof EventsCreateRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsCreateRoute: EventsCreateRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EventsRoute: EventsRoute,
+  EventsRoute: EventsRouteWithChildren,
   LoginRoute: LoginRoute,
   LegalContentGuidelinesRoute: LegalContentGuidelinesRoute,
   LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
   LegalTosRoute: LegalTosRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   OauthPreRoute: OauthPreRoute,
+  UserHandleRoute: UserHandleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

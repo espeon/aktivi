@@ -20,8 +20,44 @@ pub async fn handle(
     let actor = req.actor.as_ref();
 
     // resolve actor to DID (could be handle or DID)
-    // for now assume it's a DID
-    let did = actor;
+    let did = if crate::handle::is_did(actor) {
+        actor.to_string()
+    } else {
+        // check if we have this handle cached in the database
+        let cached =
+            sqlx::query_scalar::<_, String>("SELECT did FROM identities WHERE handle = $1 LIMIT 1")
+                .bind(actor)
+                .fetch_optional(&state.pool)
+                .await
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        if let Some(cached_did) = cached {
+            cached_did
+        } else {
+            // resolve from PLC/bluesky
+            match crate::handle::resolve_identity(actor, "https://public.api.bsky.app").await {
+                Ok(identity) => {
+                    // cache the handle->DID mapping
+                    let _ = sqlx::query!(
+                        r#"
+                        INSERT INTO identities (did, handle, seq)
+                        VALUES ($1, $2, 0)
+                        ON CONFLICT (did) DO UPDATE SET handle = EXCLUDED.handle
+                        "#,
+                        &identity.did,
+                        actor as &str
+                    )
+                    .execute(&state.pool)
+                    .await;
+                    identity.did
+                }
+                Err(_) => {
+                    // if resolution fails, treat as DID (will likely fail on profile fetch)
+                    actor.to_string()
+                }
+            }
+        }
+    };
 
     // fetch profile from database
     let profile = sqlx::query!(
@@ -43,7 +79,7 @@ pub async fn handle(
         Some(h.clone())
     } else {
         // resolve handle from DID document
-        match resolve_identity(did, "https://public.api.bsky.app").await {
+        match resolve_identity(&did, "https://public.api.bsky.app").await {
             Ok(id) => {
                 let doc = id.doc;
                 // if we don't have an alsoKnownAs entry, we can't get a handle

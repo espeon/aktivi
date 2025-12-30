@@ -1,13 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, User } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Calendar, CircleAlert, Plus, User, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQt } from "../lib/qt";
 import type { EventView } from "../lex/types/co/aktivi/event/defs";
 import { isXRPCErrorPayload } from "@atcute/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { OOTBModal } from "@/components/ootb-modal";
 import { useState, useEffect } from "react";
 import type { Did } from "@atcute/lexicons";
+import Throbber from "@/components/ui/throbber";
 
 export const Route = createFileRoute("/events")({
   component: EventsPage,
@@ -89,10 +91,8 @@ function EventsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full min-w-full flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="text-lg text-muted-foreground">loading events...</div>
-        </div>
+      <div className="min-h-screen h-screen min-w-full flex items-center justify-center bg-background">
+        <Throbber />
       </div>
     );
   }
@@ -100,9 +100,12 @@ function EventsPage() {
   if (error) {
     console.error("failed to load events:", error);
     return (
-      <div className="min-h-full min-w-full flex items-center justify-center bg-background">
+      <div className="min-h-screen h-screen min-w-full flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-lg text-destructive">failed to load events</div>
+          <CircleAlert className="mx-auto mb-4 h-12 w-12 text-destructive" />
+          <div className="text-lg text-destructive">
+            failed to load events, could not reach service
+          </div>
           <div className="text-sm text-muted-foreground">{String(error)}</div>
         </div>
       </div>
@@ -111,11 +114,12 @@ function EventsPage() {
   // if xrpc error payload
   if (isXRPCErrorPayload(data)) {
     return (
-      <div className="min-h-full min-w-full flex items-center justify-center bg-background">
+      <div className="min-h-screen h-screen min-w-full flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-lg text-destructive">failed to load events</div>
+          <div className="text-lg text-destructive">
+            failed to load events, service issue
+          </div>
           <div className="text-sm text-muted-foreground">
-            error from AppView:
             {(data as any).error.message || "unknown error"}
           </div>
         </div>
@@ -133,13 +137,22 @@ function EventsPage() {
           onComplete={() => completeOOTB.mutate()}
         />
       )}
-      <div className="min-h-full min-w-full flex flex-col items-center bg-background px-4">
+      <div className="min-h-screen h-full min-w-full flex flex-col items-center bg-background px-4">
         <div className="container py-12 max-w-4xl">
-          <div className="mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4">events</h1>
-            <p className="text-xl text-muted-foreground">
-              discover happenings and activities around the Atmosphere
-            </p>
+          <div className="mb-12 flex items-start justify-between">
+            <div>
+              <h1 className="text-5xl md:text-6xl font-bold mb-4">events</h1>
+              <p className="text-xl text-muted-foreground">
+                discover happenings and activities around the Atmosphere
+              </p>
+            </div>
+            {qt.isLoggedIn && (
+              <Link to="/events/create">
+                <Button size="icon" className="rounded-full h-12 w-12">
+                  <Plus size={24} />
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* timeline */}

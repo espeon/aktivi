@@ -1,0 +1,55 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.actor.getTimeline",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get a combined timeline of events for an actor (events they're hosting and events they've RSVPed to)",
+      "parameters": {
+        "type": "params",
+        "required": ["actor"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "The actor (DID or handle) to get timeline for"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50,
+            "description": "Maximum number of events to return"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor"
+          },
+          "timezoneOffset": {
+            "type": "integer",
+            "description": "Timezone offset in minutes from UTC (e.g., -480 for PST, -300 for EST)"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["eventsByDate"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "eventsByDate": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "co.aktivi.event.defs#eventsByDate"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

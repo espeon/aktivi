@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Home, Calendar, Menu, X, LogIn, LogOut } from "lucide-react";
+import { Home, Calendar, Menu, X, LogIn, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme";
 import { useQt } from "@/lib/qt";
@@ -113,47 +113,60 @@ export default function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
+          <div className="flex items-center gap-1">
             {qt.isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={profile?.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {profile?.displayName?.[0] || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium">
-                      {profile?.handle || qt.did}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <div className="flex items-center gap-3 p-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={profile?.avatar} />
-                      <AvatarFallback>
-                        {profile?.displayName?.[0] || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold truncate">
-                        {profile?.displayName || "user"}
-                      </span>
-                      <span className="text-xs text-muted-foreground truncate">
+              <>
+                <Link to="/events/create">
+                  <Button
+                    size="icon-sm"
+                    variant="secondary"
+                    className="rounded-full max-h-7 max-w-7"
+                  >
+                    <Plus />
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={profile?.avatar} />
+                        <AvatarFallback className="text-xs">
+                          {profile?.displayName?.[0] || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">
                         {profile?.handle || qt.did}
                       </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <div className="flex items-center gap-3 p-1">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage
+                          className="h-14 w-14"
+                          src={profile?.avatar}
+                        />
+                        <AvatarFallback className="h-14 w-14">
+                          {profile?.displayName?.[0] || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold truncate">
+                          {profile?.displayName || "user"}
+                        </span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {profile?.handle || qt.did}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={qt.logout}>
-                    <LogOut size={16} className="mr-2" />
-                    sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={qt.logout}>
+                      <LogOut size={16} className="mr-2" />
+                      sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <Link to="/login">
                 <Button variant="ghost" size="sm">
@@ -163,6 +176,7 @@ export default function Header() {
               </Link>
             )}
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
