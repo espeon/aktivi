@@ -9,7 +9,7 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
-import { AuthProvider } from "./lib/use-auth";
+import Providers from "./components/providers";
 
 // Create a new router instance
 const router = createRouter({
@@ -34,9 +34,9 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <AuthProvider>
+      <Providers>
         <RouterProvider router={router} />
-      </AuthProvider>
+      </Providers>
     </StrictMode>,
   );
 }

@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { finalizeAuthorization } from "@atcute/oauth-browser-client";
-import { initOAuth } from "../lib/oauth";
+import { useQt } from "../lib/qt";
 
 export const Route = createFileRoute("/oauth/callback")({
   component: OAuthCallback,
@@ -10,6 +9,7 @@ export const Route = createFileRoute("/oauth/callback")({
 function OAuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const qt = useQt();
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -19,20 +19,14 @@ function OAuthCallback() {
 
     const handleCallback = async () => {
       try {
-        // ensure OAuth is configured before finalizing
-        initOAuth();
-
         // server redirects with params in hash, not search string
         const params = new URLSearchParams(location.hash.slice(1));
 
         // scrub params from URL to prevent replay
         history.replaceState(null, "", location.pathname + location.search);
 
-        // finalize authorization
-        const { session } = await finalizeAuthorization(params);
-
-        // store the DID for session restoration
-        localStorage.setItem("aktivi_user_did", session.info.sub);
+        // finalize authorization using Qt provider
+        await qt.finalizeAuth(params);
 
         // redirect to home
         navigate({ to: "/" });
@@ -43,7 +37,7 @@ function OAuthCallback() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, qt]);
 
   if (error) {
     return (

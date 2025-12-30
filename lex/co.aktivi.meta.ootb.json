@@ -1,0 +1,24 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.meta.ootb",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Out-of-box experience and app metadata.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "properties": {
+          "ootbComplete": {
+            "type": "boolean",
+            "description": "Whether the user has completed onboarding."
+          },
+          "lastSeenUpdateModal": {
+            "type": "string",
+            "description": "Version string of the last update modal the user saw."
+          }
+        }
+      }
+    }
+  }
+}

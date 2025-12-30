@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createAuthorizationUrl } from "@atcute/oauth-browser-client";
 import { initOAuth } from "../lib/oauth";
 import type { ActorIdentifier } from "@atcute/lexicons";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/oauth/pre")({
   component: OAuthPre,
@@ -69,10 +70,15 @@ function OAuthPre() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">authorization failed</h1>
-          <p className="text-muted-foreground mb-4">{error}</p>
+          <h1 className="text-2xl font-bold">woah!</h1>
+          <h2 className="text-xl font-bold mb-4">
+            we encountered something odd?
+          </h2>
+          <p className="text-muted-foreground mb-6 text-sm font-mono bg-muted border px-2 py-1 rounded">
+            {error}
+          </p>
           <a href="/login" className="text-primary hover:underline">
-            try again
+            <Button>try again</Button>
           </a>
         </div>
       </div>

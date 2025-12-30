@@ -63,3 +63,11 @@ lexgen-rs:
 
 lexgen-ts:
     cd frontend && pnpm run lexgen
+
+# backend command shortcuts
+
+cli:
+    cd backend && cargo run --bin aktivi-cli --
+
+be:
+    cd backend && cargo run --bin aktivi

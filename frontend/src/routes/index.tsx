@@ -12,7 +12,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/use-auth";
+import { useQt } from "@/lib/qt";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/")({
@@ -28,7 +28,7 @@ const PFP_URLS = [
 ];
 
 function HomePage() {
-  const { session } = useAuth();
+  const qt = useQt();
 
   return (
     <div className="min-h-full min-w-full flex flex-col items-center  px-4">
@@ -50,7 +50,7 @@ function HomePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              {session ? (
+              {qt.isLoggedIn ? (
                 <>
                   <Link to="/events">
                     <Button size="lg" className="text-base">
@@ -701,7 +701,7 @@ function HomePage() {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             join the growing community organizing events on atproto
           </p>
-          {session ? (
+          {qt.isLoggedIn ? (
             <Link to="/events">
               <Button size="lg" className="text-base px-8">
                 browse events

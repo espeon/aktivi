@@ -1,18 +1,77 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Home, Calendar, Menu, X, LogIn, LogOut, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Calendar, Menu, X, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme";
-import { useAuth } from "@/lib/use-auth";
+import { useQt } from "@/lib/qt";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { Did } from "@atcute/lexicons";
+import { isXRPCErrorPayload } from "@atcute/client";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const { session, signOut } = useAuth();
+  const qt = useQt();
+  const [profile, setProfile] = useState<any>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const scrollThreshold = 50;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > scrollThreshold) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!qt.did) return;
+
+      try {
+        const res = await qt.client.get("co.aktivi.actor.getProfileView", {
+          params: { actor: qt.did as Did },
+        });
+        if (isXRPCErrorPayload(res.data)) {
+          throw res.data.error;
+        }
+        setProfile(res.data.profile);
+      } catch (err) {
+        console.error("failed to fetch profile:", err);
+      }
+    };
+
+    fetchProfile();
+  }, [qt.did, qt.client]);
 
   return (
     <>
-      <header className="sticky px-4 top-0 z-40 w-full flex items-center justify-center border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="container flex h-14 items-center">
+      <header
+        className={
+          "sticky px-4 top-0 z-40 w-full flex items-center justify-center"
+        }
+      >
+        <div
+          className={
+            "container flex items-center transition-all border" +
+            (scrolled
+              ? " px-8 h-14 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/70 rounded-full mt-2"
+              : " px-0 h-16 mt-4 border-background")
+          }
+        >
           <button
             onClick={() => setIsOpen(true)}
             className="mr-4 p-2 hover:bg-accent rounded-md transition-colors md:hidden"
@@ -56,17 +115,45 @@ export default function Header() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {session ? (
-              <>
-                <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                  <User size={16} />
-                  {session.info.sub}
-                </div>
-                <Button variant="ghost" size="sm" onClick={signOut}>
-                  <LogOut size={16} className="mr-2" />
-                  sign out
-                </Button>
-              </>
+            {qt.isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={profile?.avatar} />
+                      <AvatarFallback className="text-xs">
+                        {profile?.displayName?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">
+                      {profile?.handle || qt.did}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <div className="flex items-center gap-3 p-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={profile?.avatar} />
+                      <AvatarFallback>
+                        {profile?.displayName?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold truncate">
+                        {profile?.displayName || "user"}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {profile?.handle || qt.did}
+                      </span>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={qt.logout}>
+                    <LogOut size={16} className="mr-2" />
+                    sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link to="/login">
                 <Button variant="ghost" size="sm">
@@ -123,15 +210,27 @@ export default function Header() {
           </Link>
 
           <div className="pt-4 border-t mt-4">
-            {session ? (
+            {qt.isLoggedIn ? (
               <>
-                <div className="flex items-center gap-3 p-3 text-sm text-muted-foreground">
-                  <User size={20} />
-                  <span>{session.info.sub}</span>
+                <div className="flex items-center gap-3 p-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={profile?.avatar} />
+                    <AvatarFallback>
+                      {profile?.displayName?.[0] || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      {profile?.displayName || "User"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {profile?.handle || qt.did}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
-                    signOut();
+                    qt.logout();
                     setIsOpen(false);
                   }}
                   className="flex items-center gap-3 p-3 rounded-md hover:bg-accent transition-colors w-full"

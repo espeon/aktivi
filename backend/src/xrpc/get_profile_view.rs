@@ -10,7 +10,7 @@ use lex_rs::co_aktivi::actor::{
 };
 use std::sync::Arc;
 
-use crate::AppState;
+use crate::{handle::resolve_identity, AppState};
 
 #[axum::debug_handler]
 pub async fn handle(
@@ -38,6 +38,45 @@ pub async fn handle(
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
     .ok_or(StatusCode::NOT_FOUND)?;
 
+    // if no handle in cache, resolve it from PLC
+    let handle = if let Some(h) = profile.handle.as_ref() {
+        Some(h.clone())
+    } else {
+        // resolve handle from DID document
+        match resolve_identity(did, "https://public.api.bsky.app").await {
+            Ok(id) => {
+                let doc = id.doc;
+                // if we don't have an alsoKnownAs entry, we can't get a handle
+                let handle = doc
+                    .also_known_as
+                    .iter()
+                    .filter_map(|aka| aka.strip_prefix("at://"))
+                    .next();
+
+                let handle = match handle {
+                    Some(h) => h.to_string(),
+                    None => return Err(StatusCode::NOT_FOUND),
+                };
+
+                // cache it for next time
+                let _ = sqlx::query!(
+                    r#"
+                    INSERT INTO identities (did, handle, seq)
+                    VALUES ($1, $2, 0)
+                    ON CONFLICT (did) DO UPDATE SET handle = EXCLUDED.handle
+                    "#,
+                    did,
+                    &handle as &str
+                )
+                .execute(&state.pool)
+                .await;
+
+                Some(handle)
+            }
+            Err(_) => None,
+        }
+    };
+
     // count RSVPs for this actor
     let rsvp_count = sqlx::query_scalar!(
         r#"
@@ -53,10 +92,7 @@ pub async fn handle(
 
     let profile_view = ProfileView {
         did: Did::new_owned(did).unwrap(),
-        handle: profile
-            .handle
-            .as_ref()
-            .and_then(|h| Handle::new_owned(h).ok()),
+        handle: handle.as_ref().and_then(|h| Handle::new_owned(h).ok()),
         display_name: profile
             .display_name
             .as_ref()
