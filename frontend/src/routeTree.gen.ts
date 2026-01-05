@@ -18,7 +18,7 @@ import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
-import { Route as EventsCreateRouteImport } from './routes/events_.createe'
+import { Route as EventsCreateRouteImport } from './routes/events_.create'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
