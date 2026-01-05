@@ -2,7 +2,7 @@
 
 an events platform for the AT Protocol, built with interoperability in mind.
 
-aktivi indexes calendar events from the AT Protocol network and provides a web interface to discover and browse upcoming events. users can sign in with their Bluesky accounts via OAuth to view events created by people across the atmosphere.
+aktivi indexes calendar events from the AT Protocol network and provides a web interface to discover and browse upcoming events. users can sign in with their Internet Accounts (e.g. Bluesky, Streamplace) via OAuth to view events created by people across the atmosphere.
 
 ## quick start
 
