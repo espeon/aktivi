@@ -83,6 +83,7 @@ code {
 
 @theme inline {
   --font-sans: "Instrument Sans";
+  --font-serif: "Baskervville";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -153,15 +154,32 @@ code {
   @keyframes button-click {
     0%,
     100% {
-      transform: scale(1);
+      transform: rotate(0deg) scale(1);
     }
-    50% {
-      transform: scale(0.95);
+    10% {
+      transform: rotate(-1deg) scale(1.05);
     }
   }
 
   .animate-button-click {
-    animation: button-click 0.2s ease-in-out 1.3s both;
+    animation: button-click 0.4s ease-in-out 1.3s both;
+  }
+
+  @keyframes hero-rotate {
+    0%,
+    100% {
+      transform: scale(1);
+      /* anim brightness too */
+      filter: brightness(100%);
+    }
+    10% {
+      transform: scale(0.99);
+      filter: brightness(107%);
+    }
+  }
+
+  .animate-hero-rotate {
+    animation: hero-rotate 1.2s ease-out 1.3s both;
   }
 
   @keyframes particle-burst {

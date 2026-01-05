@@ -40,8 +40,7 @@ function HomePage() {
             <div className="space-y-6">
               <h1 className="text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[0.9]">
                 plan activities
-                <br />
-                with your network
+                <br /> with your network
               </h1>
               <p className="text-2xl md:text-3xl text-muted-foreground max-w-lg leading-tight">
                 make, organize and discover events across the
@@ -86,7 +85,7 @@ function HomePage() {
 
             <div className="w-full">
               {/* mock event card - larger and more prominent */}
-              <div className="bg-card border-2 border-border rounded-2xl shadow-2xl shadow-primary/5 overflow-hidden rotate-1 hover:rotate-0 transition-transform">
+              <div className="bg-card animate-hero-rotate border-2 border-border rounded-2xl shadow-2xl shadow-primary/5 overflow-hidden rotate-1 hover:rotate-0 transition-transform">
                 <div className="p-8 space-y-6">
                   {/* event header */}
                   <div className="flex items-start gap-4">

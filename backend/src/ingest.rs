@@ -319,6 +319,71 @@ impl LexiconIngestor for AccountIngestor {
     }
 }
 
+/// Ingests event enrichment data into the database
+pub struct EventEnrichmentIngestor {
+    pool: PgPool,
+}
+
+impl EventEnrichmentIngestor {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[async_trait]
+impl LexiconIngestor for EventEnrichmentIngestor {
+    async fn ingest(&self, message: JetstreamEvent<Value>) -> Result<()> {
+        let Some(commit) = message.commit else {
+            return Ok(());
+        };
+
+        let Some(record) = commit.record else {
+            return Ok(());
+        };
+
+        let uri = format!("at://{}/{}/{}", message.did, commit.collection, commit.rkey);
+        let cid = commit.cid.as_deref().unwrap_or("unknown");
+
+        debug!("ingesting event enrichment: {}", uri);
+
+        // extract eventUri and other enrichment fields from the record
+        let event_uri = record
+            .get("eventUri")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow::anyhow!("missing eventUri in enrichment record"))?;
+
+        let style = record.get("style");
+        let avatar_link = record.get("avatar");
+        let tags = record
+            .get("tags")
+            .map(|v| serde_json::to_value(v))
+            .transpose()?;
+
+        sqlx::query!(
+            r#"
+            INSERT INTO event_enrichment (uri, cid, event_uri, style, avatar, tags)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (uri) DO UPDATE SET
+                cid = EXCLUDED.cid,
+                style = EXCLUDED.style,
+                avatar = EXCLUDED.avatar,
+                tags = EXCLUDED.tags
+            "#,
+            uri,
+            cid,
+            event_uri,
+            style,
+            avatar_link,
+            tags,
+        )
+        .execute(&self.pool)
+        .await?;
+
+        info!("ingested event enrichment: {}", uri);
+        Ok(())
+    }
+}
+
 fn is_valid_handle(handle: &str) -> bool {
     // basic handle validation: lowercase alphanumeric with dots and hyphens
     // must not start or end with dot/hyphen

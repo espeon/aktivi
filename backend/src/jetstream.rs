@@ -10,12 +10,14 @@ use std::sync::{Arc, Mutex};
 use tracing::{error, info};
 
 use crate::ingest::{
-    AccountIngestor, EventIngestor, IdentityIngestor, ProfileIngestor, RsvpIngestor,
+    AccountIngestor, EventEnrichmentIngestor, EventIngestor, IdentityIngestor, ProfileIngestor,
+    RsvpIngestor,
 };
 
 const EVENT_COLLECTION: &str = "community.lexicon.calendar.event";
 const RSVP_COLLECTION: &str = "community.lexicon.calendar.rsvp";
 const PROFILE_COLLECTION: &str = "co.aktivi.actor.profile";
+const EVENT_ENRICHMENT_COLLECTION: &str = "co.aktivi.calendar.eventEnrichmentData";
 
 pub struct JetstreamConsumer {
     endpoint: JetstreamEndpoints,
@@ -43,6 +45,7 @@ impl JetstreamConsumer {
                 EVENT_COLLECTION.to_string(),
                 RSVP_COLLECTION.to_string(),
                 PROFILE_COLLECTION.to_string(),
+                EVENT_ENRICHMENT_COLLECTION.to_string(),
             ])
             .build();
 
@@ -64,6 +67,11 @@ impl JetstreamConsumer {
         ingestors.commits.insert(
             PROFILE_COLLECTION.to_string(),
             Box::new(ProfileIngestor::new(self.pool.clone())),
+        );
+
+        ingestors.commits.insert(
+            EVENT_ENRICHMENT_COLLECTION.to_string(),
+            Box::new(EventEnrichmentIngestor::new(self.pool.clone())),
         );
 
         // register identity ingestor for handle updates

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Calendar, CircleAlert, Plus, User, X } from "lucide-react";
+import { Calendar, CircleAlert, Plus, User } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQt } from "../lib/qt";
 import type { EventView } from "../lex/types/co/aktivi/event/defs";
@@ -237,7 +237,7 @@ function EventsPage() {
                             </div>
 
                             {/* event placeholder */}
-                            <div className="relative h-48 md:max-h-min m-2 rounded-lg border aspect-square bg-gradient-to-br from-primary/20 via-primary/10 to-muted/30 flex items-center justify-center">
+                            <div className="relative h-48 md:max-h-min m-2 rounded-lg border aspect-square bg-linear-to-br from-primary/20 via-primary/10 to-muted/30 flex items-center justify-center">
                               <div className="text-2xl font-bold text-primary/30 text-center leading-tight">
                                 {record.name
                                   .split(" ")

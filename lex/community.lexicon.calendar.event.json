@@ -64,6 +64,11 @@
               "type": "ref",
               "ref": "community.lexicon.calendar.event#uri"
             }
+          },
+          "enrichmentUri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Optional reference to co.aktivi.calendar.eventEnrichmentData sidecar for enrichment data like style and avatar."
           }
         }
       }

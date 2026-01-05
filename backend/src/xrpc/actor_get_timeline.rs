@@ -88,8 +88,12 @@ pub async fn handle(
             e.locations,
             e.uris,
             e.indexed_at,
+            ee.style,
+            ee.avatar,
+            ee.tags,
             DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $4)) as event_date
         FROM events e
+        LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri
         LEFT JOIN rsvps r ON e.uri = r.subject_uri AND r.did = $1
         WHERE (e.did = $1 OR r.did IS NOT NULL)
           AND e.starts_at > NOW()
@@ -207,6 +211,11 @@ pub async fn handle(
             }
         };
 
+        // TODO: properly deserialize enrichment data from JSONB
+        let style = None;
+        let tags = None;
+        let avatar_url = None;
+
         let event_view = EventView {
             uri: AtUri::new_owned(&event.uri).unwrap(),
             cid: Cid::cow_str(CowStr::copy_from_str(&event.cid)),
@@ -224,6 +233,9 @@ pub async fn handle(
             indexed_at: jacquard_common::types::string::Datetime::new(
                 event.indexed_at.fixed_offset(),
             ),
+            style,
+            avatar_url,
+            tags,
             extra_data: None,
         };
 

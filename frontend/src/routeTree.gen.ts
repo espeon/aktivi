@@ -18,7 +18,7 @@ import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
-import { Route as EventsCreateRouteImport } from './routes/events.create'
+import { Route as EventsCreateRouteImport } from './routes/events_.createe'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -66,14 +66,14 @@ const LegalContentGuidelinesRoute = LegalContentGuidelinesRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsCreateRoute = EventsCreateRouteImport.update({
-  id: '/create',
-  path: '/create',
-  getParentRoute: () => EventsRoute,
+  id: '/events_/create',
+  path: '/events/create',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
@@ -85,7 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
@@ -98,9 +98,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
-  '/events/create': typeof EventsCreateRoute
+  '/events_/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
@@ -138,7 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
-    | '/events/create'
+    | '/events_/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
@@ -149,8 +149,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EventsRoute: typeof EventsRouteWithChildren
+  EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  EventsCreateRoute: typeof EventsCreateRoute
   LegalContentGuidelinesRoute: typeof LegalContentGuidelinesRoute
   LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
   LegalTosRoute: typeof LegalTosRoute
@@ -224,31 +225,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalContentGuidelinesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events/create': {
-      id: '/events/create'
-      path: '/create'
+    '/events_/create': {
+      id: '/events_/create'
+      path: '/events/create'
       fullPath: '/events/create'
       preLoaderRoute: typeof EventsCreateRouteImport
-      parentRoute: typeof EventsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface EventsRouteChildren {
-  EventsCreateRoute: typeof EventsCreateRoute
-}
-
-const EventsRouteChildren: EventsRouteChildren = {
-  EventsCreateRoute: EventsCreateRoute,
-}
-
-const EventsRouteWithChildren =
-  EventsRoute._addFileChildren(EventsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EventsRoute: EventsRouteWithChildren,
+  EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  EventsCreateRoute: EventsCreateRoute,
   LegalContentGuidelinesRoute: LegalContentGuidelinesRoute,
   LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
   LegalTosRoute: LegalTosRoute,

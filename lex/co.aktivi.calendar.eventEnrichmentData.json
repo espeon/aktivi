@@ -1,0 +1,63 @@
+{
+  "lexicon": 1,
+  "id": "co.aktivi.calendar.eventEnrichmentData",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Enrichment data for community calendar events, stored as a sidecar.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["eventUri"],
+        "properties": {
+          "eventUri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference to the community.lexicon.calendar.event record this enriches."
+          },
+          "style": {
+            "type": "ref",
+            "ref": "co.aktivi.calendar.eventEnrichmentData#eventStyle",
+            "description": "Visual design style for the event."
+          },
+          "avatar": {
+            "type": "blob",
+            "description": "Avatar image for the event."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Custom tags or categories for the event.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "eventStyle": {
+      "type": "object",
+      "description": "Visual design style configuration for the event.",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "description": "Text color (hex, rgb, or color name)."
+        },
+        "fontFace": {
+          "type": "string",
+          "description": "Font family or face to use."
+        },
+        "bgColor": {
+          "type": "string",
+          "description": "Background color (hex, rgb, or color name)."
+        },
+        "bgEffects": {
+          "type": "array",
+          "description": "Array of background effects or filters.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -81,6 +81,10 @@ pub struct Event<'a> {
     /// Client-declared timestamp when the event ends.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     pub ends_at: std::option::Option<jacquard_common::types::string::Datetime>,
+    /// Optional reference to co.aktivi.calendar.eventEnrichmentData sidecar for enrichment data like style and avatar.
+    #[serde(skip_serializing_if = "std::option::Option::is_none")]
+    #[serde(borrow)]
+    pub enrichment_uri: std::option::Option<jacquard_common::types::string::AtUri<'a>>,
     /// The locations where the event takes place.
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
@@ -119,37 +123,37 @@ pub mod event_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
-        type Name;
         type CreatedAt;
+        type Name;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
-        type Name = Unset;
         type CreatedAt = Unset;
-    }
-    ///State transition - sets the `name` field to Set
-    pub struct SetName<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetName<S> {}
-    impl<S: State> State for SetName<S> {
-        type Name = Set<members::name>;
-        type CreatedAt = S::CreatedAt;
+        type Name = Unset;
     }
     ///State transition - sets the `created_at` field to Set
     pub struct SetCreatedAt<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetCreatedAt<S> {}
     impl<S: State> State for SetCreatedAt<S> {
-        type Name = S::Name;
         type CreatedAt = Set<members::created_at>;
+        type Name = S::Name;
+    }
+    ///State transition - sets the `name` field to Set
+    pub struct SetName<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetName<S> {}
+    impl<S: State> State for SetName<S> {
+        type CreatedAt = S::CreatedAt;
+        type Name = Set<members::name>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
-        ///Marker type for the `name` field
-        pub struct name(());
         ///Marker type for the `created_at` field
         pub struct created_at(());
+        ///Marker type for the `name` field
+        pub struct name(());
     }
 }
 
@@ -160,6 +164,7 @@ pub struct EventBuilder<'a, S: event_state::State> {
         ::core::option::Option<jacquard_common::types::string::Datetime>,
         ::core::option::Option<jacquard_common::CowStr<'a>>,
         ::core::option::Option<jacquard_common::types::string::Datetime>,
+        ::core::option::Option<jacquard_common::types::string::AtUri<'a>>,
         ::core::option::Option<Vec<EventLocationsItem<'a>>>,
         ::core::option::Option<crate::community_lexicon::calendar::event::Mode<'a>>,
         ::core::option::Option<jacquard_common::CowStr<'a>>,
@@ -183,6 +188,7 @@ impl<'a> EventBuilder<'a, event_state::Empty> {
         EventBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: (
+                None,
                 None,
                 None,
                 None,
@@ -256,12 +262,31 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
 }
 
 impl<'a, S: event_state::State> EventBuilder<'a, S> {
+    /// Set the `enrichmentUri` field (optional)
+    pub fn enrichment_uri(
+        mut self,
+        value: impl Into<Option<jacquard_common::types::string::AtUri<'a>>>,
+    ) -> Self {
+        self.__unsafe_private_named.3 = value.into();
+        self
+    }
+    /// Set the `enrichmentUri` field to an Option value (optional)
+    pub fn maybe_enrichment_uri(
+        mut self,
+        value: Option<jacquard_common::types::string::AtUri<'a>>,
+    ) -> Self {
+        self.__unsafe_private_named.3 = value;
+        self
+    }
+}
+
+impl<'a, S: event_state::State> EventBuilder<'a, S> {
     /// Set the `locations` field (optional)
     pub fn locations(
         mut self,
         value: impl Into<Option<Vec<EventLocationsItem<'a>>>>,
     ) -> Self {
-        self.__unsafe_private_named.3 = value.into();
+        self.__unsafe_private_named.4 = value.into();
         self
     }
     /// Set the `locations` field to an Option value (optional)
@@ -269,7 +294,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: Option<Vec<EventLocationsItem<'a>>>,
     ) -> Self {
-        self.__unsafe_private_named.3 = value;
+        self.__unsafe_private_named.4 = value;
         self
     }
 }
@@ -280,7 +305,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: impl Into<Option<crate::community_lexicon::calendar::event::Mode<'a>>>,
     ) -> Self {
-        self.__unsafe_private_named.4 = value.into();
+        self.__unsafe_private_named.5 = value.into();
         self
     }
     /// Set the `mode` field to an Option value (optional)
@@ -288,7 +313,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: Option<crate::community_lexicon::calendar::event::Mode<'a>>,
     ) -> Self {
-        self.__unsafe_private_named.4 = value;
+        self.__unsafe_private_named.5 = value;
         self
     }
 }
@@ -303,7 +328,7 @@ where
         mut self,
         value: impl Into<jacquard_common::CowStr<'a>>,
     ) -> EventBuilder<'a, event_state::SetName<S>> {
-        self.__unsafe_private_named.5 = ::core::option::Option::Some(value.into());
+        self.__unsafe_private_named.6 = ::core::option::Option::Some(value.into());
         EventBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: self.__unsafe_private_named,
@@ -318,7 +343,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: impl Into<Option<jacquard_common::types::string::Datetime>>,
     ) -> Self {
-        self.__unsafe_private_named.6 = value.into();
+        self.__unsafe_private_named.7 = value.into();
         self
     }
     /// Set the `startsAt` field to an Option value (optional)
@@ -326,7 +351,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: Option<jacquard_common::types::string::Datetime>,
     ) -> Self {
-        self.__unsafe_private_named.6 = value;
+        self.__unsafe_private_named.7 = value;
         self
     }
 }
@@ -337,7 +362,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: impl Into<Option<crate::community_lexicon::calendar::event::Status<'a>>>,
     ) -> Self {
-        self.__unsafe_private_named.7 = value.into();
+        self.__unsafe_private_named.8 = value.into();
         self
     }
     /// Set the `status` field to an Option value (optional)
@@ -345,7 +370,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: Option<crate::community_lexicon::calendar::event::Status<'a>>,
     ) -> Self {
-        self.__unsafe_private_named.7 = value;
+        self.__unsafe_private_named.8 = value;
         self
     }
 }
@@ -356,7 +381,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: impl Into<Option<Vec<crate::community_lexicon::calendar::event::Uri<'a>>>>,
     ) -> Self {
-        self.__unsafe_private_named.8 = value.into();
+        self.__unsafe_private_named.9 = value.into();
         self
     }
     /// Set the `uris` field to an Option value (optional)
@@ -364,7 +389,7 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
         mut self,
         value: Option<Vec<crate::community_lexicon::calendar::event::Uri<'a>>>,
     ) -> Self {
-        self.__unsafe_private_named.8 = value;
+        self.__unsafe_private_named.9 = value;
         self
     }
 }
@@ -372,8 +397,8 @@ impl<'a, S: event_state::State> EventBuilder<'a, S> {
 impl<'a, S> EventBuilder<'a, S>
 where
     S: event_state::State,
-    S::Name: event_state::IsSet,
     S::CreatedAt: event_state::IsSet,
+    S::Name: event_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> Event<'a> {
@@ -381,12 +406,13 @@ where
             created_at: self.__unsafe_private_named.0.unwrap(),
             description: self.__unsafe_private_named.1,
             ends_at: self.__unsafe_private_named.2,
-            locations: self.__unsafe_private_named.3,
-            mode: self.__unsafe_private_named.4,
-            name: self.__unsafe_private_named.5.unwrap(),
-            starts_at: self.__unsafe_private_named.6,
-            status: self.__unsafe_private_named.7,
-            uris: self.__unsafe_private_named.8,
+            enrichment_uri: self.__unsafe_private_named.3,
+            locations: self.__unsafe_private_named.4,
+            mode: self.__unsafe_private_named.5,
+            name: self.__unsafe_private_named.6.unwrap(),
+            starts_at: self.__unsafe_private_named.7,
+            status: self.__unsafe_private_named.8,
+            uris: self.__unsafe_private_named.9,
             extra_data: Default::default(),
         }
     }
@@ -402,12 +428,13 @@ where
             created_at: self.__unsafe_private_named.0.unwrap(),
             description: self.__unsafe_private_named.1,
             ends_at: self.__unsafe_private_named.2,
-            locations: self.__unsafe_private_named.3,
-            mode: self.__unsafe_private_named.4,
-            name: self.__unsafe_private_named.5.unwrap(),
-            starts_at: self.__unsafe_private_named.6,
-            status: self.__unsafe_private_named.7,
-            uris: self.__unsafe_private_named.8,
+            enrichment_uri: self.__unsafe_private_named.3,
+            locations: self.__unsafe_private_named.4,
+            mode: self.__unsafe_private_named.5,
+            name: self.__unsafe_private_named.6.unwrap(),
+            starts_at: self.__unsafe_private_named.7,
+            status: self.__unsafe_private_named.8,
+            uris: self.__unsafe_private_named.9,
             extra_data: Some(extra_data),
         }
     }
@@ -617,6 +644,29 @@ fn lexicon_doc_community_lexicon_calendar_event() -> ::jacquard_lexicon::lexicon
                                     ),
                                     format: Some(
                                         ::jacquard_lexicon::lexicon::LexStringFormat::Datetime,
+                                    ),
+                                    default: None,
+                                    min_length: None,
+                                    max_length: None,
+                                    min_graphemes: None,
+                                    max_graphemes: None,
+                                    r#enum: None,
+                                    r#const: None,
+                                    known_values: None,
+                                }),
+                            );
+                            map.insert(
+                                ::jacquard_common::smol_str::SmolStr::new_static(
+                                    "enrichmentUri",
+                                ),
+                                ::jacquard_lexicon::lexicon::LexObjectProperty::String(::jacquard_lexicon::lexicon::LexString {
+                                    description: Some(
+                                        ::jacquard_common::CowStr::new_static(
+                                            "Optional reference to co.aktivi.calendar.eventEnrichmentData sidecar for enrichment data like style and avatar.",
+                                        ),
+                                    ),
+                                    format: Some(
+                                        ::jacquard_lexicon::lexicon::LexStringFormat::AtUri,
                                     ),
                                     default: None,
                                     min_length: None,

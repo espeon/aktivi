@@ -78,6 +78,8 @@ pub async fn handle(
                 starts_at: rsvp
                     .event_starts_at
                     .map(|dt| jacquard_common::types::string::Datetime::new(dt.fixed_offset())),
+                avatar_url: None,
+                tags: None,
                 extra_data: None,
             },
             indexed_at: jacquard_common::types::string::Datetime::new(

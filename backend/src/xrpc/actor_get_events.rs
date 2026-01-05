@@ -34,10 +34,11 @@ pub async fn handle(
 
     let events = sqlx::query!(
         r#"
-        SELECT uri, cid, did, name, description, created_at, starts_at, ends_at, mode, status, locations, uris, indexed_at
-        FROM events
-        WHERE did = $1
-        ORDER BY starts_at DESC
+        SELECT e.uri, e.cid, e.did, e.name, e.description, e.created_at, e.starts_at, e.ends_at, e.mode, e.status, e.locations, e.uris, e.indexed_at, ee.style, ee.avatar, ee.tags
+        FROM events e
+        LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri
+        WHERE e.did = $1
+        ORDER BY e.starts_at DESC
         LIMIT $2 OFFSET $3
         "#,
         did,
@@ -89,24 +90,34 @@ pub async fn handle(
     let events_len = events.len();
     let event_views = events
         .into_iter()
-        .map(|event| EventView {
-            uri: AtUri::new_owned(&event.uri).unwrap(),
-            cid: Cid::cow_str(CowStr::copy_from_str(&event.cid)),
-            author: author.clone(),
-            record: Data::from_json_owned(serde_json::json!({
-                "name": event.name,
-                "description": event.description,
-                "createdAt": event.created_at.to_rfc3339(),
-                "startsAt": event.starts_at.map(|dt| dt.to_rfc3339()),
-                "endsAt": event.ends_at.map(|dt| dt.to_rfc3339()),
-                "mode": event.mode,
-                "status": event.status,
-            }))
-            .unwrap(),
-            indexed_at: jacquard_common::types::string::Datetime::new(
-                event.indexed_at.fixed_offset(),
-            ),
-            extra_data: None,
+        .map(|event| {
+            // TODO: properly deserialize enrichment data from JSONB
+            let style = None;
+            let tags = None;
+            let avatar_url = None;
+
+            EventView {
+                uri: AtUri::new_owned(&event.uri).unwrap(),
+                cid: Cid::cow_str(CowStr::copy_from_str(&event.cid)),
+                author: author.clone(),
+                record: Data::from_json_owned(serde_json::json!({
+                    "name": event.name,
+                    "description": event.description,
+                    "createdAt": event.created_at.to_rfc3339(),
+                    "startsAt": event.starts_at.map(|dt| dt.to_rfc3339()),
+                    "endsAt": event.ends_at.map(|dt| dt.to_rfc3339()),
+                    "mode": event.mode,
+                    "status": event.status,
+                }))
+                .unwrap(),
+                indexed_at: jacquard_common::types::string::Datetime::new(
+                    event.indexed_at.fixed_offset(),
+                ),
+                style,
+                avatar_url,
+                tags,
+                extra_data: None,
+            }
         })
         .collect();
 

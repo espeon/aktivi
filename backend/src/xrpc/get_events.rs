@@ -35,23 +35,27 @@ pub async fn handle(
     let events = sqlx::query!(
         r#"
         SELECT
-            uri,
-            cid,
-            did,
-            name,
-            description,
-            created_at,
-            starts_at,
-            ends_at,
-            mode,
-            status,
-            locations,
-            uris,
-            indexed_at,
-            DATE((starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date
-        FROM events
-        WHERE starts_at > NOW()
-        ORDER BY starts_at ASC
+            e.uri,
+            e.cid,
+            e.did,
+            e.name,
+            e.description,
+            e.created_at,
+            e.starts_at,
+            e.ends_at,
+            e.mode,
+            e.status,
+            e.locations,
+            e.uris,
+            e.indexed_at,
+            ee.style,
+            ee.avatar,
+            ee.tags,
+            DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date
+        FROM events e
+        LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri
+        WHERE e.starts_at > NOW()
+        ORDER BY e.starts_at ASC
         LIMIT $1 OFFSET $2
         "#,
         limit,
@@ -170,6 +174,11 @@ pub async fn handle(
             }
         };
 
+        // TODO: properly deserialize enrichment data from JSONB
+        let style = None;
+        let tags = None;
+        let avatar_url = None;
+
         let event_view = EventView {
             uri: AtUri::new_owned(&event.uri).unwrap(),
             cid: Cid::cow_str(CowStr::copy_from_str(&event.cid)),
@@ -187,6 +196,9 @@ pub async fn handle(
             indexed_at: jacquard_common::types::string::Datetime::new(
                 event.indexed_at.fixed_offset(),
             ),
+            style,
+            avatar_url,
+            tags,
             extra_data: None,
         };
 

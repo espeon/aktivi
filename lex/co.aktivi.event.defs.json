@@ -20,6 +20,17 @@
         "startsAt": {
           "type": "string",
           "format": "datetime"
+        },
+        "avatarURL": {
+          "type": "string",
+          "description": "CDN URL for the avatar image for the event."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Custom tags or categories for the event.",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -41,6 +52,22 @@
         },
         "record": {
           "type": "unknown"
+        },
+        "style": {
+          "type": "ref",
+          "ref": "co.aktivi.calendar.eventEnrichmentData#eventStyle",
+          "description": "Visual design style for the event."
+        },
+        "avatarURL": {
+          "type": "string",
+          "description": "CDN URL for the avatar image for the event."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Custom tags or categories for the event.",
+          "items": {
+            "type": "string"
+          }
         },
         "indexedAt": {
           "type": "string",
