@@ -23,13 +23,16 @@ migrate:
 docker-up:
     docker compose up -d
 
+orb:
+    orb start && just docker-up
+
 # stop docker services
 docker-down:
     docker compose down
 
 # run the backend server
 dev:
-    cd backend && DATABASE_URL={{db_url}} cargo run
+    cargo run --bin aktivi
 
 # prepare sqlx query metadata (run after schema changes)
 sqlx-prepare:
@@ -71,3 +74,8 @@ cli:
 
 be:
     cd backend && cargo run --bin aktivi
+
+# frontend command shortcuts
+
+fe:
+    cd frontend && pnpm run dev
