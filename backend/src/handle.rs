@@ -1,5 +1,5 @@
 use moka::future::Cache;
-use tracing::warn;
+use tracing::{info, warn};
 
 /// Validates a handle and verifies it resolves to the expected DID, with caching
 pub async fn validate_with_cache(
@@ -49,6 +49,8 @@ async fn check_handle_resolution(handle: &str, expected_did: &str) -> Result<boo
         if let Some(known_handle) = known_as.strip_prefix("at://") {
             if !known_handle.eq_ignore_ascii_case(handle) {
                 return Ok(false);
+            } else {
+                break;
             }
         }
     }

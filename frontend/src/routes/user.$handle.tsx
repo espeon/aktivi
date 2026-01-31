@@ -5,7 +5,7 @@ import { useQt } from "../lib/qt";
 import type { EventView } from "../lex/types/co/aktivi/event/defs";
 import { isXRPCErrorPayload } from "@atcute/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { Handle } from "@atcute/lexicons";
+import type { ActorIdentifier, Handle } from "@atcute/lexicons";
 import Throbber from "@/components/ui/throbber";
 
 export const Route = createFileRoute("/user/$handle")({
@@ -38,7 +38,7 @@ function UserPage() {
     queryFn: async () => {
       const response = await qt.client.get("co.aktivi.actor.getTimeline", {
         params: {
-          actor: handle,
+          actor: handle as ActorIdentifier,
           limit: 50,
           timezoneOffset: -new Date().getTimezoneOffset(),
         },

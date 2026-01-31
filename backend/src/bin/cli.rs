@@ -1,7 +1,11 @@
-use aktivi::backfill;
+use aktivi::{
+    backfill,
+    handle::{resolve_identity, validate_with_cache},
+};
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use futures::stream::{self, StreamExt};
+use moka::future::Cache;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -24,6 +28,11 @@ enum Commands {
         /// The DID of the user to import
         #[arg(short, long)]
         did: String,
+    },
+    Resolve {
+        /// The handle or DID to resolve
+        #[arg(short, long)]
+        input: String,
     },
     /// Full backfill of all users with calendar data
     FullBackfill {
@@ -61,6 +70,21 @@ async fn main() -> Result<()> {
             info!("importing calendar data for {}", did);
             backfill::backfill_user(&did, &pool).await?;
             info!("import complete");
+        }
+        Commands::Resolve { input } => {
+            info!("resolving input: {}", input);
+            let resolved = resolve_identity(&input, "https://public.api.bsky.app").await?;
+            info!("resolved to doc: {:?}", resolved);
+            // verify
+            let fake_cache = Cache::new(1000);
+            let is_valid = validate_with_cache(&input, &resolved.did, &fake_cache)
+                .await
+                .is_some();
+            if is_valid {
+                info!("handle verification succeeded");
+            } else {
+                error!("handle verification failed");
+            }
         }
         Commands::FullBackfill {
             collection,

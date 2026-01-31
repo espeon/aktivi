@@ -19,6 +19,7 @@ import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
 import { Route as EventsCreateRouteImport } from './routes/events_.create'
+import { Route as EventIdRouteImport } from './routes/event.$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -70,11 +71,17 @@ const EventsCreateRoute = EventsCreateRouteImport.update({
   path: '/events/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventIdRoute = EventIdRouteImport.update({
+  id: '/event/$id',
+  path: '/event/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/event/$id': typeof EventIdRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/event/$id': typeof EventIdRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/event/$id': typeof EventIdRoute
   '/events_/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/event/$id'
     | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/event/$id'
     | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/event/$id'
     | '/events_/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  EventIdRoute: typeof EventIdRoute
   EventsCreateRoute: typeof EventsCreateRoute
   LegalContentGuidelinesRoute: typeof LegalContentGuidelinesRoute
   LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/event/$id': {
+      id: '/event/$id'
+      path: '/event/$id'
+      fullPath: '/event/$id'
+      preLoaderRoute: typeof EventIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  EventIdRoute: EventIdRoute,
   EventsCreateRoute: EventsCreateRoute,
   LegalContentGuidelinesRoute: LegalContentGuidelinesRoute,
   LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
