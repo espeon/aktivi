@@ -1,0 +1,79 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT r.uri, r.cid, r.did, r.status, r.indexed_at\n        FROM rsvps r\n        WHERE r.subject_uri = $1 AND ($2::text IS NULL OR r.status = $2)\n        ORDER BY r.indexed_at DESC\n        LIMIT $3 OFFSET $4\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uri",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "uri"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "cid",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "cid"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "did",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "did"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "indexed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "indexed_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a5ab90d01c9260b2289f06ae123c16225cc813665bdea438f10c5110db0d4590"
+}

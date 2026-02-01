@@ -1,6 +1,7 @@
 use aktivi::{jetstream::JetstreamConsumer, oatproxy, xrpc, AppState};
 use axum::Router;
 use jacquard_axum::IntoRouter;
+use jacquard_oatproxy::KeyStore;
 use lex_rs::co_aktivi::{
     actor::{
         get_events::GetEventsRequest as ActorGetEventsRequest,
@@ -26,7 +27,7 @@ async fn main() -> miette::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "aktivi=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "aktivi=debug".into()),
         )
         .init();
 
@@ -51,7 +52,7 @@ async fn main() -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    let oat = oatproxy::oat(pool.clone()).await?;
+    let (oat, keystore) = oatproxy::oat(pool.clone()).await?;
 
     let token_manager = Arc::new(jacquard_oatproxy::TokenManager::new(public_url.to_owned()));
 
@@ -71,6 +72,7 @@ async fn main() -> miette::Result<()> {
         profile_cache,
         handle_validity_cache,
         token_manager,
+        keystore,
     });
 
     // spawn jetstream consumer in background

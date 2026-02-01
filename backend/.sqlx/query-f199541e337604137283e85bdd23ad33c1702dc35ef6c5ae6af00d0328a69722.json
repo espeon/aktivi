@@ -1,0 +1,277 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            e.uri,\n            e.cid,\n            e.did,\n            e.name,\n            e.description,\n            e.created_at,\n            e.starts_at,\n            e.ends_at,\n            e.mode,\n            e.status,\n            e.locations,\n            e.uris,\n            e.indexed_at,\n            ee.style,\n            ee.avatar,\n            ee.tags,\n            DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date,\n            p.display_name as author_display_name,\n            p.description as author_description,\n            p.avatar as author_avatar,\n            p.banner as author_banner,\n            i.handle as author_handle\n        FROM events e\n        LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri\n        LEFT JOIN profiles p ON e.did = p.did\n        LEFT JOIN identities i ON e.did = i.did\n        WHERE e.starts_at > NOW()\n        AND i.handle IS NOT NULL\n        -- LOL kms\n        AND e.did != 'did:plc:vsnj4aaxyatiht4spdht2q2t'\n        ORDER BY e.starts_at ASC\n        LIMIT $1 OFFSET $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uri",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "uri"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "cid",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "cid"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "did",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "did"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "starts_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "starts_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "ends_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "ends_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "mode"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "locations",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "locations"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "uris",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "uris"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "indexed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "indexed_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "style",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "style"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "avatar",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "avatar"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "tags",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "tags"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "event_date",
+        "type_info": "Date",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 17,
+        "name": "author_display_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "profiles",
+            "name": "display_name"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "author_description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "profiles",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "author_avatar",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "profiles",
+            "name": "avatar"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "author_banner",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "profiles",
+            "name": "banner"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "author_handle",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "identities",
+            "name": "handle"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Float8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      null,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "f199541e337604137283e85bdd23ad33c1702dc35ef6c5ae6af00d0328a69722"
+}

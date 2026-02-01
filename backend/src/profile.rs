@@ -24,7 +24,7 @@ pub struct ProfileRecord {
 
 pub async fn fetch_bsky_profile(
     did: &str,
-    handle_validity_cache: &Cache<String, bool>,
+    handle_validity_cache: &Cache<String, crate::CachedIdentity>,
 ) -> Result<ProfileRecord> {
     let url = format!(
         "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={}",

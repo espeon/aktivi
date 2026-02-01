@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE profiles\n            SET updated_at = NOW()\n            WHERE did = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2d511578e82f612828a9b27a3acfcbd811ca9c3eec22132499264730b5bb2f0e"
+}

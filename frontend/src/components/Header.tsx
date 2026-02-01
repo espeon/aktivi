@@ -125,6 +125,25 @@ export default function Header() {
                     <Plus />
                   </Button>
                 </Link>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    qt.client
+                      .get("co.aktivi.actor.getProfileView", {
+                        params: { actor: qt.did as Did },
+                      })
+                      .then((res) => {
+                        if (isXRPCErrorPayload(res.data)) {
+                          throw res.data.error;
+                        }
+                        alert(
+                          `logged in as: ${res.data.profile?.handle || qt.did}`,
+                        );
+                      })
+                  }
+                >
+                  am i logged in acktually
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">

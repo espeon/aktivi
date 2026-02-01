@@ -1,0 +1,210 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT e.uri, e.cid, e.did, e.name, e.description, e.created_at, e.starts_at, e.ends_at, e.mode, e.status, e.locations, e.uris, e.indexed_at, ee.style, ee.avatar, ee.tags\n        FROM events e\n        LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri\n        WHERE (e.name ILIKE $1 OR e.description ILIKE $1)\n          AND e.starts_at > NOW()\n        ORDER BY e.starts_at ASC\n        LIMIT $2 OFFSET $3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uri",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "uri"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "cid",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "cid"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "did",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "did"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "starts_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "starts_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "ends_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "ends_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "mode"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "locations",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "locations"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "uris",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "uris"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "indexed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "indexed_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "style",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "style"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "avatar",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "avatar"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "tags",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "event_enrichment",
+            "name": "tags"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "529b60f016aa920fd612a9fb79b1f74a94538954159611e9810a1d5458bba093"
+}

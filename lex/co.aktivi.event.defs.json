@@ -94,12 +94,34 @@
         "record": {
           "type": "unknown"
         },
-        "rsvpCount": {
-          "type": "integer"
+        "goingCount": {
+          "type": "integer",
+          "description": "Count of RSVPs with 'going' status"
+        },
+        "interestedCount": {
+          "type": "integer",
+          "description": "Count of RSVPs with 'interested' status"
+        },
+        "selectedRsvps": {
+          "type": "array",
+          "description": "Sample of RSVPs to display (up to 3)",
+          "items": {
+            "type": "ref",
+            "ref": "co.aktivi.actor.defs#profileViewBasic"
+          }
         },
         "indexedAt": {
           "type": "string",
           "format": "datetime"
+        },
+        "currentUserStatus": {
+          "type": "string",
+          "description": "The RSVP status of the requesting user for this event",
+          "knownValues": [
+            "community.lexicon.calendar.rsvp#interested",
+            "community.lexicon.calendar.rsvp#going",
+            "community.lexicon.calendar.rsvp#notgoing"
+          ]
         }
       }
     },

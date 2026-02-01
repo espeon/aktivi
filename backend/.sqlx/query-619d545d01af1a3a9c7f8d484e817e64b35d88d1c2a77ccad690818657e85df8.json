@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT hmac_secret FROM oatproxy_dpop_hmac_secret WHERE id = 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "hmac_secret",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "oatproxy_dpop_hmac_secret",
+            "name": "hmac_secret"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "619d545d01af1a3a9c7f8d484e817e64b35d88d1c2a77ccad690818657e85df8"
+}

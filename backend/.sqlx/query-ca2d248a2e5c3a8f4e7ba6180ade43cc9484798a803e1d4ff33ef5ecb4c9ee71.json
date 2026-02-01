@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO identities (did, handle, seq)\n            SELECT $1, $2, $3\n            WHERE EXISTS (SELECT 1 FROM profiles WHERE did = $1)\n            ON CONFLICT (did) DO UPDATE SET\n                handle = EXCLUDED.handle,\n                seq = EXCLUDED.seq,\n                updated_at = NOW()\n            WHERE identities.seq < EXCLUDED.seq\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ca2d248a2e5c3a8f4e7ba6180ade43cc9484798a803e1d4ff33ef5ecb4c9ee71"
+}

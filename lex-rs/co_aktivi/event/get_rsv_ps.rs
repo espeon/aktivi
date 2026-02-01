@@ -249,83 +249,83 @@ pub mod rsvp_view_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
-        type Author;
-        type Status;
         type IndexedAt;
+        type Status;
         type Cid;
+        type Author;
         type Uri;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
-        type Author = Unset;
-        type Status = Unset;
         type IndexedAt = Unset;
+        type Status = Unset;
         type Cid = Unset;
+        type Author = Unset;
         type Uri = Unset;
     }
-    ///State transition - sets the `author` field to Set
-    pub struct SetAuthor<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetAuthor<S> {}
-    impl<S: State> State for SetAuthor<S> {
-        type Author = Set<members::author>;
+    ///State transition - sets the `indexed_at` field to Set
+    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
+    impl<S: State> State for SetIndexedAt<S> {
+        type IndexedAt = Set<members::indexed_at>;
         type Status = S::Status;
-        type IndexedAt = S::IndexedAt;
         type Cid = S::Cid;
+        type Author = S::Author;
         type Uri = S::Uri;
     }
     ///State transition - sets the `status` field to Set
     pub struct SetStatus<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetStatus<S> {}
     impl<S: State> State for SetStatus<S> {
-        type Author = S::Author;
-        type Status = Set<members::status>;
         type IndexedAt = S::IndexedAt;
+        type Status = Set<members::status>;
         type Cid = S::Cid;
-        type Uri = S::Uri;
-    }
-    ///State transition - sets the `indexed_at` field to Set
-    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
-    impl<S: State> State for SetIndexedAt<S> {
         type Author = S::Author;
-        type Status = S::Status;
-        type IndexedAt = Set<members::indexed_at>;
-        type Cid = S::Cid;
         type Uri = S::Uri;
     }
     ///State transition - sets the `cid` field to Set
     pub struct SetCid<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetCid<S> {}
     impl<S: State> State for SetCid<S> {
-        type Author = S::Author;
-        type Status = S::Status;
         type IndexedAt = S::IndexedAt;
+        type Status = S::Status;
         type Cid = Set<members::cid>;
+        type Author = S::Author;
+        type Uri = S::Uri;
+    }
+    ///State transition - sets the `author` field to Set
+    pub struct SetAuthor<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetAuthor<S> {}
+    impl<S: State> State for SetAuthor<S> {
+        type IndexedAt = S::IndexedAt;
+        type Status = S::Status;
+        type Cid = S::Cid;
+        type Author = Set<members::author>;
         type Uri = S::Uri;
     }
     ///State transition - sets the `uri` field to Set
     pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetUri<S> {}
     impl<S: State> State for SetUri<S> {
-        type Author = S::Author;
-        type Status = S::Status;
         type IndexedAt = S::IndexedAt;
+        type Status = S::Status;
         type Cid = S::Cid;
+        type Author = S::Author;
         type Uri = Set<members::uri>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
-        ///Marker type for the `author` field
-        pub struct author(());
-        ///Marker type for the `status` field
-        pub struct status(());
         ///Marker type for the `indexed_at` field
         pub struct indexed_at(());
+        ///Marker type for the `status` field
+        pub struct status(());
         ///Marker type for the `cid` field
         pub struct cid(());
+        ///Marker type for the `author` field
+        pub struct author(());
         ///Marker type for the `uri` field
         pub struct uri(());
     }
@@ -460,10 +460,10 @@ where
 impl<'a, S> RsvpViewBuilder<'a, S>
 where
     S: rsvp_view_state::State,
-    S::Author: rsvp_view_state::IsSet,
-    S::Status: rsvp_view_state::IsSet,
     S::IndexedAt: rsvp_view_state::IsSet,
+    S::Status: rsvp_view_state::IsSet,
     S::Cid: rsvp_view_state::IsSet,
+    S::Author: rsvp_view_state::IsSet,
     S::Uri: rsvp_view_state::IsSet,
 {
     /// Build the final struct

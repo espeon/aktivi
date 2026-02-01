@@ -32,7 +32,7 @@ pub async fn handle(
     // e.g., -480 minutes (PST) becomes '-08:00:00'
     let timezone_offset_seconds = req.timezone_offset.unwrap_or(0) * 60;
 
-    let events = sqlx::query!(
+    let events_with_profiles = sqlx::query!(
         r#"
         SELECT
             e.uri,
@@ -51,10 +51,21 @@ pub async fn handle(
             ee.style,
             ee.avatar,
             ee.tags,
-            DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date
+            DATE((e.starts_at AT TIME ZONE 'UTC') + make_interval(secs => $3)) as event_date,
+            p.display_name as author_display_name,
+            p.description as author_description,
+            p.avatar as author_avatar,
+            p.banner as author_banner,
+            i.handle as author_handle
         FROM events e
         LEFT JOIN event_enrichment ee ON e.uri = ee.event_uri
+        LEFT JOIN profiles p ON e.did = p.did
+        LEFT JOIN identities i ON e.did = i.did
         WHERE e.starts_at > NOW()
+        -- there is probably a better way to filter out invalid profiles
+        AND i.handle IS NOT NULL
+        -- LOL kms
+        AND e.did != 'did:plc:vsnj4aaxyatiht4spdht2q2t'
         ORDER BY e.starts_at ASC
         LIMIT $1 OFFSET $2
         "#,
@@ -64,95 +75,105 @@ pub async fn handle(
     )
     .fetch_all(&state.pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        tracing::error!("database query failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
-    // fetch profiles for all event authors
-    let dids: Vec<String> = events.iter().map(|e| e.did.clone()).collect();
-    let profiles = sqlx::query!(
-        r#"
-        SELECT p.did, p.display_name, p.description, p.avatar, p.banner, a.handle
-        FROM profiles p
-        LEFT JOIN identities a ON p.did = a.did
-        WHERE p.did = ANY($1)
-        "#,
-        &dids
-    )
-    .fetch_all(&state.pool)
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    tracing::debug!(
+        "fetched {} events from database",
+        events_with_profiles.len()
+    );
 
-    let mut profile_map: HashMap<String, ProfileRecord> = profiles
-        .into_iter()
-        .filter_map(|p| {
-            p.did.map(|did| {
-                (
-                    did.clone(),
-                    ProfileRecord {
-                        did,
-                        handle: Some(p.handle),
-                        display_name: p.display_name,
-                        description: p.description,
-                        avatar: p.avatar,
-                        banner: p.banner,
-                    },
-                )
-            })
-        })
-        .collect();
+    // collect missing profiles and check cache in parallel
+    let mut profile_map: HashMap<String, ProfileRecord> = HashMap::new();
+    let mut missing_dids: Vec<String> = Vec::new();
 
-    // fall back to bsky profiles if any not found in local profiles table
-    let missing_dids: Vec<&String> = dids
-        .iter()
-        .filter(|did| !profile_map.contains_key(*did))
-        .collect();
-
-    if !missing_dids.is_empty() {
-        for did in missing_dids {
-            // check cache first
-            let profile = if let Some(cached_profile) = state.profile_cache.get(did).await {
-                cached_profile
-            } else {
-                // fetch from bsky api and validate handle
-                let fetched =
-                    match crate::profile::fetch_bsky_profile(did, &state.handle_validity_cache)
-                        .await
-                    {
-                        Ok(profile) => profile,
-                        Err(_) => {
-                            // if bsky api fails, create a minimal profile with just the did
-                            ProfileRecord {
-                                did: did.clone(),
-                                handle: None,
-                                display_name: None,
-                                description: None,
-                                avatar: None,
-                                banner: None,
-                            }
-                        }
-                    };
-
-                // cache the result
-                state
-                    .profile_cache
-                    .insert(did.clone(), fetched.clone())
-                    .await;
-
-                fetched
-            };
-
-            profile_map.insert(did.clone(), profile);
+    for event in &events_with_profiles {
+        if let (Some(display_name), handle) = (&event.author_display_name, &event.author_handle) {
+            // profile exists in local db
+            profile_map.insert(
+                event.did.clone(),
+                ProfileRecord {
+                    did: event.did.clone(),
+                    handle: Some(handle.clone()),
+                    display_name: Some(display_name.clone()),
+                    description: event.author_description.clone(),
+                    avatar: event.author_avatar.clone(),
+                    banner: event.author_banner.clone(),
+                },
+            );
+        } else if state.profile_cache.get(&event.did).await.is_none() {
+            // not in db and not in cache - need to fetch
+            missing_dids.push(event.did.clone());
+        } else {
+            // in cache
+            let cached = state.profile_cache.get(&event.did).await.unwrap();
+            profile_map.insert(event.did.clone(), cached);
         }
     }
 
-    let events_len = events.len();
+    tracing::debug!(
+        "profile stats: {} in db, {} in cache, {} need fetching",
+        profile_map.len(),
+        events_with_profiles.len() - profile_map.len() - missing_dids.len(),
+        missing_dids.len()
+    );
+
+    // fetch all missing profiles in parallel
+    if !missing_dids.is_empty() {
+        let fetch_tasks: Vec<_> = missing_dids
+            .into_iter()
+            .map(|did| {
+                let state = state.clone();
+                async move {
+                    let profile = match crate::profile::fetch_bsky_profile(
+                        &did,
+                        &state.handle_validity_cache,
+                    )
+                    .await
+                    {
+                        Ok(profile) => profile,
+                        Err(_) => ProfileRecord {
+                            did: did.clone(),
+                            handle: None,
+                            display_name: None,
+                            description: None,
+                            avatar: None,
+                            banner: None,
+                        },
+                    };
+
+                    state
+                        .profile_cache
+                        .insert(did.clone(), profile.clone())
+                        .await;
+                    (did, profile)
+                }
+            })
+            .collect();
+
+        let fetched_profiles = futures::future::join_all(fetch_tasks).await;
+        profile_map.extend(fetched_profiles);
+    }
+
+    let events_len = events_with_profiles.len();
 
     // group events by date
     let mut events_by_date: HashMap<chrono::NaiveDate, Vec<EventView<'static>>> = HashMap::new();
 
-    for event in events {
+    for event in events_with_profiles {
+        let did = match Did::new_owned(&event.did) {
+            Ok(did) => did,
+            Err(_) => {
+                tracing::warn!("invalid DID in event: {}", event.did);
+                continue;
+            }
+        };
+
         let author = if let Some(profile) = profile_map.get(&event.did) {
             ProfileViewBasic {
-                did: Did::new_owned(&event.did).unwrap(),
+                did: did.clone(),
                 handle: profile
                     .handle
                     .as_ref()
@@ -161,16 +182,40 @@ pub async fn handle(
                     .display_name
                     .as_ref()
                     .map(|s| CowStr::copy_from_str(s)),
-                avatar: profile.avatar.as_ref().map(|s| Uri::new_owned(s).unwrap()),
+                avatar: profile.avatar.as_ref().and_then(|s| Uri::new_owned(s).ok()),
                 extra_data: None,
             }
         } else {
             ProfileViewBasic {
-                did: Did::new_owned(&event.did).unwrap(),
+                did: did.clone(),
                 handle: None,
                 display_name: None,
                 avatar: None,
                 extra_data: None,
+            }
+        };
+
+        let uri = match AtUri::new_owned(&event.uri) {
+            Ok(uri) => uri,
+            Err(_) => {
+                tracing::warn!("invalid AT-URI in event: {}", event.uri);
+                continue;
+            }
+        };
+
+        let record = match Data::from_json_owned(serde_json::json!({
+            "name": event.name,
+            "description": event.description,
+            "createdAt": event.created_at.to_rfc3339(),
+            "startsAt": event.starts_at.map(|dt| dt.to_rfc3339()),
+            "endsAt": event.ends_at.map(|dt| dt.to_rfc3339()),
+            "mode": event.mode,
+            "status": event.status,
+        })) {
+            Ok(data) => data,
+            Err(_) => {
+                tracing::warn!("failed to serialize event record: {}", event.uri);
+                continue;
             }
         };
 
@@ -180,19 +225,10 @@ pub async fn handle(
         let avatar_url = None;
 
         let event_view = EventView {
-            uri: AtUri::new_owned(&event.uri).unwrap(),
+            uri,
             cid: Cid::cow_str(CowStr::copy_from_str(&event.cid)),
             author,
-            record: Data::from_json_owned(serde_json::json!({
-                "name": event.name,
-                "description": event.description,
-                "createdAt": event.created_at.to_rfc3339(),
-                "startsAt": event.starts_at.map(|dt| dt.to_rfc3339()),
-                "endsAt": event.ends_at.map(|dt| dt.to_rfc3339()),
-                "mode": event.mode,
-                "status": event.status,
-            }))
-            .unwrap(),
+            record,
             indexed_at: jacquard_common::types::string::Datetime::new(
                 event.indexed_at.fixed_offset(),
             ),
@@ -216,12 +252,14 @@ pub async fn handle(
 
     let events_by_date_output: Vec<EventsByDate> = sorted_dates
         .into_iter()
-        .map(|(date, events)| EventsByDate {
-            date: jacquard_common::types::string::Datetime::new(
-                date.and_hms_opt(0, 0, 0).unwrap().and_utc().fixed_offset(),
-            ),
-            events,
-            extra_data: None,
+        .filter_map(|(date, events)| {
+            date.and_hms_opt(0, 0, 0).map(|datetime| EventsByDate {
+                date: jacquard_common::types::string::Datetime::new(
+                    datetime.and_utc().fixed_offset(),
+                ),
+                events,
+                extra_data: None,
+            })
         })
         .collect();
 

@@ -1,10 +1,12 @@
+use std::sync::Arc;
+
 use jacquard::url;
 use miette::IntoDiagnostic;
 use sqlx::PgPool;
 
-mod store;
+pub mod store;
 
-pub async fn oat(db: PgPool) -> miette::Result<axum::Router> {
+pub async fn oat(db: PgPool) -> miette::Result<(axum::Router, Arc<store::PgStore>)> {
     use jacquard_oatproxy::{OAuthProxyServer, ProxyConfig};
     use store::PgStore;
 
@@ -114,5 +116,5 @@ pub async fn oat(db: PgPool) -> miette::Result<axum::Router> {
         .key_store(store.clone())
         .build()
         .expect("failed to build OAuth proxy server");
-    Ok(proxy.router())
+    Ok((proxy.router(), store))
 }

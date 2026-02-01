@@ -113,6 +113,7 @@ async fn main() -> Result<()> {
                         if did == "did:plc:vsnj4aaxyatiht4spdht2q2t" {
                             // skip known bad DID
                             info!("skipping backfill for specified excluded DID: {}", did);
+                            return;
                         }
                         match backfill::backfill_user(&did, &pool).await {
                             Ok(_) => {

@@ -12,14 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as UserHandleRouteImport } from './routes/user.$handle'
 import { Route as OauthPreRouteImport } from './routes/oauth.pre'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as LegalTosRouteImport } from './routes/legal.tos'
 import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal.privacy-policy'
 import { Route as LegalContentGuidelinesRouteImport } from './routes/legal.content-guidelines'
 import { Route as EventsCreateRouteImport } from './routes/events_.create'
-import { Route as EventIdRouteImport } from './routes/event.$id'
+import { Route as UserHandleIndexRouteImport } from './routes/user/$handle/index'
+import { Route as UserHandleEventRkeyRouteImport } from './routes/user/$handle/event.$rkey'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -34,11 +34,6 @@ const EventsRoute = EventsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UserHandleRoute = UserHandleRouteImport.update({
-  id: '/user/$handle',
-  path: '/user/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OauthPreRoute = OauthPreRouteImport.update({
@@ -71,9 +66,14 @@ const EventsCreateRoute = EventsCreateRouteImport.update({
   path: '/events/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventIdRoute = EventIdRouteImport.update({
-  id: '/event/$id',
-  path: '/event/$id',
+const UserHandleIndexRoute = UserHandleIndexRouteImport.update({
+  id: '/user/$handle/',
+  path: '/user/$handle/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserHandleEventRkeyRoute = UserHandleEventRkeyRouteImport.update({
+  id: '/user/$handle/event/$rkey',
+  path: '/user/$handle/event/$rkey',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -81,41 +81,41 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
-  '/event/$id': typeof EventIdRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
-  '/user/$handle': typeof UserHandleRoute
+  '/user/$handle': typeof UserHandleIndexRoute
+  '/user/$handle/event/$rkey': typeof UserHandleEventRkeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
-  '/event/$id': typeof EventIdRoute
   '/events/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
-  '/user/$handle': typeof UserHandleRoute
+  '/user/$handle': typeof UserHandleIndexRoute
+  '/user/$handle/event/$rkey': typeof UserHandleEventRkeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
-  '/event/$id': typeof EventIdRoute
   '/events_/create': typeof EventsCreateRoute
   '/legal/content-guidelines': typeof LegalContentGuidelinesRoute
   '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
   '/legal/tos': typeof LegalTosRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/pre': typeof OauthPreRoute
-  '/user/$handle': typeof UserHandleRoute
+  '/user/$handle/': typeof UserHandleIndexRoute
+  '/user/$handle/event/$rkey': typeof UserHandleEventRkeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,7 +123,6 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
-    | '/event/$id'
     | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
@@ -131,12 +130,12 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/oauth/pre'
     | '/user/$handle'
+    | '/user/$handle/event/$rkey'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/events'
     | '/login'
-    | '/event/$id'
     | '/events/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
@@ -144,33 +143,34 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/oauth/pre'
     | '/user/$handle'
+    | '/user/$handle/event/$rkey'
   id:
     | '__root__'
     | '/'
     | '/events'
     | '/login'
-    | '/event/$id'
     | '/events_/create'
     | '/legal/content-guidelines'
     | '/legal/privacy-policy'
     | '/legal/tos'
     | '/oauth/callback'
     | '/oauth/pre'
-    | '/user/$handle'
+    | '/user/$handle/'
+    | '/user/$handle/event/$rkey'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
-  EventIdRoute: typeof EventIdRoute
   EventsCreateRoute: typeof EventsCreateRoute
   LegalContentGuidelinesRoute: typeof LegalContentGuidelinesRoute
   LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
   LegalTosRoute: typeof LegalTosRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   OauthPreRoute: typeof OauthPreRoute
-  UserHandleRoute: typeof UserHandleRoute
+  UserHandleIndexRoute: typeof UserHandleIndexRoute
+  UserHandleEventRkeyRoute: typeof UserHandleEventRkeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -194,13 +194,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/user/$handle': {
-      id: '/user/$handle'
-      path: '/user/$handle'
-      fullPath: '/user/$handle'
-      preLoaderRoute: typeof UserHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/oauth/pre': {
@@ -245,11 +238,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/event/$id': {
-      id: '/event/$id'
-      path: '/event/$id'
-      fullPath: '/event/$id'
-      preLoaderRoute: typeof EventIdRouteImport
+    '/user/$handle/': {
+      id: '/user/$handle/'
+      path: '/user/$handle'
+      fullPath: '/user/$handle'
+      preLoaderRoute: typeof UserHandleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/$handle/event/$rkey': {
+      id: '/user/$handle/event/$rkey'
+      path: '/user/$handle/event/$rkey'
+      fullPath: '/user/$handle/event/$rkey'
+      preLoaderRoute: typeof UserHandleEventRkeyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -259,14 +259,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
-  EventIdRoute: EventIdRoute,
   EventsCreateRoute: EventsCreateRoute,
   LegalContentGuidelinesRoute: LegalContentGuidelinesRoute,
   LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
   LegalTosRoute: LegalTosRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   OauthPreRoute: OauthPreRoute,
-  UserHandleRoute: UserHandleRoute,
+  UserHandleIndexRoute: UserHandleIndexRoute,
+  UserHandleEventRkeyRoute: UserHandleEventRkeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

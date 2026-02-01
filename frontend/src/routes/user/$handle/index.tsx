@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CircleAlert, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useQt } from "../lib/qt";
-import type { EventView } from "../lex/types/co/aktivi/event/defs";
 import { isXRPCErrorPayload } from "@atcute/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ActorIdentifier, Handle } from "@atcute/lexicons";
 import Throbber from "@/components/ui/throbber";
+import { useQt } from "@/lib/qt";
+import type { EventView } from "@/lex/types/co/aktivi/event/defs";
 
-export const Route = createFileRoute("/user/$handle")({
+export const Route = createFileRoute("/user/$handle/")({
   component: UserPage,
 });
 

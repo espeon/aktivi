@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT r.did\n        FROM rsvps r\n        WHERE r.subject_uri = $1\n        AND r.status IN ('community.lexicon.calendar.rsvp#going')\n        ORDER BY r.indexed_at DESC\n        LIMIT 3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "did",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rsvps",
+            "name": "did"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "037f64a49b22f243ccd3ca7cb8c7919ca7d40205105ff2602a09adabdd4f31bc"
+}

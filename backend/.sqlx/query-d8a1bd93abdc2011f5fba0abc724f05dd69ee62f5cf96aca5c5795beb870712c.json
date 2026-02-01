@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO event_enrichment (uri, cid, event_uri, style, avatar, tags)\n            VALUES ($1, $2, $3, $4, $5, $6)\n            ON CONFLICT (uri) DO UPDATE SET\n                cid = EXCLUDED.cid,\n                style = EXCLUDED.style,\n                avatar = EXCLUDED.avatar,\n                tags = EXCLUDED.tags\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Jsonb",
+        "Jsonb",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d8a1bd93abdc2011f5fba0abc724f05dd69ee62f5cf96aca5c5795beb870712c"
+}

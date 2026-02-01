@@ -191,63 +191,70 @@ function EventsPage() {
                         : null;
 
                       return (
-                        <div
+                        <Link
+                          to={"/user/$handle/event/$rkey"}
+                          params={{
+                            handle: event.author.handle || event.author.did,
+                            // bleh
+                            rkey: event.uri.split("/").pop() || "",
+                          }}
                           key={event.uri}
-                          className="bg-card border-2 border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg cursor-pointer"
                         >
-                          <div className="flex flex-col-reverse md:flex md:flex-row gap-0 justify-between">
-                            {/* event info */}
-                            <div className="p-6 space-y-3">
-                              {/* time */}
-                              {startsAt && (
-                                <div className="text-base font-medium text-muted-foreground">
-                                  {startsAt.toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                  })}
+                          <div className="bg-card border-2 border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg cursor-pointer my-4">
+                            <div className="flex flex-col-reverse md:flex md:flex-row gap-0 justify-between">
+                              {/* event info */}
+                              <div className="p-6 space-y-3">
+                                {/* time */}
+                                {startsAt && (
+                                  <div className="text-base font-medium text-muted-foreground">
+                                    {startsAt.toLocaleTimeString("en-US", {
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* title */}
+                                <h3 className="text-2xl font-bold leading-tight">
+                                  {record.name}
+                                </h3>
+
+                                {/* host */}
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Avatar>
+                                    <AvatarImage src={event.author.avatar} />
+                                    <AvatarFallback>
+                                      <User />
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-medium">
+                                    {event.author.displayName
+                                      ? `${event.author.displayName} (${event.author.handle || event.author.did})`
+                                      : event.author.handle || event.author.did}
+                                  </span>
                                 </div>
-                              )}
 
-                              {/* title */}
-                              <h3 className="text-2xl font-bold leading-tight">
-                                {record.name}
-                              </h3>
-
-                              {/* host */}
-                              <div className="flex items-center gap-2 text-sm">
-                                <Avatar>
-                                  <AvatarImage src={event.author.avatar} />
-                                  <AvatarFallback>
-                                    <User />
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-medium">
-                                  {event.author.displayName
-                                    ? `${event.author.displayName} (${event.author.handle || event.author.did})`
-                                    : event.author.handle || event.author.did}
-                                </span>
+                                {/* description */}
+                                {record.description && (
+                                  <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {record.description}
+                                  </p>
+                                )}
                               </div>
 
-                              {/* description */}
-                              {record.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {record.description}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* event placeholder */}
-                            <div className="relative h-48 md:max-h-min m-2 rounded-lg border aspect-square bg-linear-to-br from-primary/20 via-primary/10 to-muted/30 flex items-center justify-center">
+                              {/* event placeholder */}
+                              {/*<div className="relative h-48 md:max-h-min m-2 rounded-lg border aspect-square bg-linear-to-br from-primary/20 via-primary/10 to-muted/30 flex items-center justify-center">
                               <div className="text-2xl font-bold text-primary/30 text-center leading-tight">
                                 {record.name
                                   .split(" ")
                                   .slice(0, 3)
-                                  .join("\n")
+                                  .join("\na")
                                   .toUpperCase()}
                               </div>
+                            </div>*/}
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                        INSERT INTO identities (did, handle, seq)\n                        VALUES ($1, $2, 0)\n                        ON CONFLICT (did) DO UPDATE SET handle = EXCLUDED.handle\n                        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "89207ca054c838826720a6a6c583f2ce540961e9f329ea5f0db99d5baec65928"
+}

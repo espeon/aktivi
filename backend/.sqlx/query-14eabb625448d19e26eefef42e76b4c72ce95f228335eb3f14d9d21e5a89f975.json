@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO oatproxy_signing_key (id, private_key) VALUES (1, $1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "14eabb625448d19e26eefef42e76b4c72ce95f228335eb3f14d9d21e5a89f975"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT private_key FROM oatproxy_signing_key WHERE id = 1 LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "private_key",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "oatproxy_signing_key",
+            "name": "private_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2ce5f498823dfc3e0019773dfa2068b46c1862f366dc6f81f5b816481c7b8e27"
+}

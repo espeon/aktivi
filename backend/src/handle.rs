@@ -5,7 +5,7 @@ use tracing::{info, warn};
 pub async fn validate_with_cache(
     handle: &str,
     expected_did: &str,
-    cache: &Cache<String, bool>,
+    cache: &Cache<String, crate::CachedIdentity>,
 ) -> Option<String> {
     if !is_valid_domain(handle) {
         warn!("invalid handle format: {}", handle);
@@ -13,21 +13,28 @@ pub async fn validate_with_cache(
     }
 
     // check if we've validated this handle before
-    let is_valid = if let Some(cached) = cache.get(handle).await {
+    let cached_identity = if let Some(cached) = cache.get(handle).await {
         cached
     } else {
-        // verify handle resolves to this DID
-        let valid = check_handle_resolution(handle, expected_did).await;
-        // if error happened, treat as invalid
-        let valid = match valid {
-            Ok(v) => v,
-            Err(_) => false,
+        // verify handle resolves to this DID and get did doc
+        let result = check_handle_resolution_with_doc(handle, expected_did).await;
+        let cached_identity = match result {
+            Ok((valid, did_doc)) => crate::CachedIdentity {
+                is_valid: valid,
+                did_doc: Some(did_doc),
+            },
+            Err(_) => crate::CachedIdentity {
+                is_valid: false,
+                did_doc: None,
+            },
         };
-        cache.insert(handle.to_string(), valid).await;
-        valid
+        cache
+            .insert(handle.to_string(), cached_identity.clone())
+            .await;
+        cached_identity
     };
 
-    if is_valid {
+    if cached_identity.is_valid {
         Some(handle.to_string())
     } else {
         warn!("handle {} does not resolve to DID {}", handle, expected_did);
@@ -37,18 +44,27 @@ pub async fn validate_with_cache(
 
 // verifies that the handle resolves bidirectionally, and to the specified DID
 async fn check_handle_resolution(handle: &str, expected_did: &str) -> Result<bool, anyhow::Error> {
+    let (valid, _) = check_handle_resolution_with_doc(handle, expected_did).await?;
+    Ok(valid)
+}
+
+// verifies that the handle resolves bidirectionally, and to the specified DID, returning the DID doc
+async fn check_handle_resolution_with_doc(
+    handle: &str,
+    expected_did: &str,
+) -> Result<(bool, DidDocument), anyhow::Error> {
     let res = resolve_identity(handle, "https://public.api.bsky.app").await;
     // get handle from did doc, normalise and compare it with input handle
     let doc = match res {
         Ok(identity) => identity.doc,
-        Err(_) => return Ok(false),
+        Err(_) => return Ok((false, DidDocument::default())),
     };
 
     for known_as in doc.also_known_as.iter() {
         // known_as is of format "at://{handle}"
         if let Some(known_handle) = known_as.strip_prefix("at://") {
             if !known_handle.eq_ignore_ascii_case(handle) {
-                return Ok(false);
+                return Ok((false, doc));
             } else {
                 break;
             }
@@ -56,10 +72,10 @@ async fn check_handle_resolution(handle: &str, expected_did: &str) -> Result<boo
     }
 
     if !doc.id.eq_ignore_ascii_case(expected_did) {
-        return Ok(false);
+        return Ok((false, doc));
     }
 
-    Ok(true)
+    Ok((true, doc))
 }
 
 use serde::{Deserialize, Serialize};
@@ -259,6 +275,83 @@ pub async fn resolve_identity(
     });
 }
 
+/// Resolves a handle or DID to a DID document with caching and bidirectional verification
+pub async fn resolve_identity_with_cache(
+    id: &str,
+    cache: &Cache<String, crate::CachedIdentity>,
+) -> Result<ResolvedIdentity, anyhow::Error> {
+    // check cache first
+    if let Some(cached_identity) = cache.get(id).await {
+        if let Some(cached_doc) = cached_identity.did_doc {
+            if cached_identity.is_valid {
+                let pds = get_pds_endpoint(&cached_doc)
+                    .ok_or_else(|| anyhow::anyhow!("could not find PDS in cached DID document"))?;
+
+                return Ok(ResolvedIdentity {
+                    did: cached_doc.id.clone(),
+                    doc: cached_doc,
+                    identity: id.to_owned(),
+                    pds: pds.service_endpoint,
+                });
+            } else {
+                return Err(anyhow::anyhow!("cached identity marked as invalid"));
+            }
+        }
+    }
+
+    // resolve identity
+    let identity = resolve_identity(id, "https://public.api.bsky.app")
+        .await
+        .map_err(|e| anyhow::anyhow!("failed to resolve identity: {}", e))?;
+
+    // verify bidirectionally if input was a handle
+    let is_valid = if !is_did(id) {
+        let mut found_match = false;
+        for known_as in identity.doc.also_known_as.iter() {
+            if let Some(known_handle) = known_as.strip_prefix("at://") {
+                if known_handle.eq_ignore_ascii_case(id) {
+                    found_match = true;
+                    break;
+                }
+            }
+        }
+        found_match
+    } else {
+        true
+    };
+
+    if !is_valid {
+        // cache invalid result
+        cache
+            .insert(
+                id.to_string(),
+                crate::CachedIdentity {
+                    is_valid: false,
+                    did_doc: Some(identity.doc.clone()),
+                },
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "handle {} does not bidirectionally resolve to DID {}",
+            id,
+            identity.did
+        ));
+    }
+
+    // cache valid result
+    cache
+        .insert(
+            id.to_string(),
+            crate::CachedIdentity {
+                is_valid: true,
+                did_doc: Some(identity.doc.clone()),
+            },
+        )
+        .await;
+
+    Ok(identity)
+}
+
 // want this to be reusable on case of scope expansion :(
 #[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug)]
@@ -275,25 +368,34 @@ struct ResolvedHandle {
     did: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct DidDocument {
     #[serde(alias = "@context")]
+    #[serde(default)]
     pub _context: Vec<String>,
+    #[serde(default)]
     pub id: String,
     #[serde(alias = "alsoKnownAs")]
+    #[serde(default)]
     pub also_known_as: Vec<String>,
     #[serde(alias = "verificationMethod")]
+    #[serde(default)]
     pub verification_method: Vec<DidDocumentVerificationMethod>,
+    #[serde(default)]
     pub service: Vec<DidDocumentService>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct DidDocumentVerificationMethod {
+    #[serde(default)]
     pub id: String,
     #[serde(alias = "type")]
+    #[serde(default)]
     pub _type: String,
+    #[serde(default)]
     pub controller: String,
     #[serde(alias = "publicKeyMultibase")]
+    #[serde(default)]
     pub public_key_multibase: String,
 }
 
