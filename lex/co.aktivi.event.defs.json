@@ -122,6 +122,11 @@
             "community.lexicon.calendar.rsvp#going",
             "community.lexicon.calendar.rsvp#notgoing"
           ]
+        },
+        "currentUserRsvpUri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "The AT-URI of the requesting user's RSVP record for this event"
         }
       }
     },

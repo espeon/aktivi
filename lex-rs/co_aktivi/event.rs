@@ -56,85 +56,85 @@ pub mod event_view_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
-        type IndexedAt;
         type Cid;
-        type Record;
-        type Uri;
         type Author;
+        type Record;
+        type IndexedAt;
+        type Uri;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
-        type IndexedAt = Unset;
         type Cid = Unset;
-        type Record = Unset;
-        type Uri = Unset;
         type Author = Unset;
-    }
-    ///State transition - sets the `indexed_at` field to Set
-    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
-    impl<S: State> State for SetIndexedAt<S> {
-        type IndexedAt = Set<members::indexed_at>;
-        type Cid = S::Cid;
-        type Record = S::Record;
-        type Uri = S::Uri;
-        type Author = S::Author;
+        type Record = Unset;
+        type IndexedAt = Unset;
+        type Uri = Unset;
     }
     ///State transition - sets the `cid` field to Set
     pub struct SetCid<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetCid<S> {}
     impl<S: State> State for SetCid<S> {
-        type IndexedAt = S::IndexedAt;
         type Cid = Set<members::cid>;
+        type Author = S::Author;
         type Record = S::Record;
-        type Uri = S::Uri;
-        type Author = S::Author;
-    }
-    ///State transition - sets the `record` field to Set
-    pub struct SetRecord<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetRecord<S> {}
-    impl<S: State> State for SetRecord<S> {
         type IndexedAt = S::IndexedAt;
-        type Cid = S::Cid;
-        type Record = Set<members::record>;
         type Uri = S::Uri;
-        type Author = S::Author;
-    }
-    ///State transition - sets the `uri` field to Set
-    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetUri<S> {}
-    impl<S: State> State for SetUri<S> {
-        type IndexedAt = S::IndexedAt;
-        type Cid = S::Cid;
-        type Record = S::Record;
-        type Uri = Set<members::uri>;
-        type Author = S::Author;
     }
     ///State transition - sets the `author` field to Set
     pub struct SetAuthor<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetAuthor<S> {}
     impl<S: State> State for SetAuthor<S> {
-        type IndexedAt = S::IndexedAt;
         type Cid = S::Cid;
-        type Record = S::Record;
-        type Uri = S::Uri;
         type Author = Set<members::author>;
+        type Record = S::Record;
+        type IndexedAt = S::IndexedAt;
+        type Uri = S::Uri;
+    }
+    ///State transition - sets the `record` field to Set
+    pub struct SetRecord<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetRecord<S> {}
+    impl<S: State> State for SetRecord<S> {
+        type Cid = S::Cid;
+        type Author = S::Author;
+        type Record = Set<members::record>;
+        type IndexedAt = S::IndexedAt;
+        type Uri = S::Uri;
+    }
+    ///State transition - sets the `indexed_at` field to Set
+    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
+    impl<S: State> State for SetIndexedAt<S> {
+        type Cid = S::Cid;
+        type Author = S::Author;
+        type Record = S::Record;
+        type IndexedAt = Set<members::indexed_at>;
+        type Uri = S::Uri;
+    }
+    ///State transition - sets the `uri` field to Set
+    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetUri<S> {}
+    impl<S: State> State for SetUri<S> {
+        type Cid = S::Cid;
+        type Author = S::Author;
+        type Record = S::Record;
+        type IndexedAt = S::IndexedAt;
+        type Uri = Set<members::uri>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
-        ///Marker type for the `indexed_at` field
-        pub struct indexed_at(());
         ///Marker type for the `cid` field
         pub struct cid(());
-        ///Marker type for the `record` field
-        pub struct record(());
-        ///Marker type for the `uri` field
-        pub struct uri(());
         ///Marker type for the `author` field
         pub struct author(());
+        ///Marker type for the `record` field
+        pub struct record(());
+        ///Marker type for the `indexed_at` field
+        pub struct indexed_at(());
+        ///Marker type for the `uri` field
+        pub struct uri(());
     }
 }
 
@@ -331,11 +331,11 @@ where
 impl<'a, S> EventViewBuilder<'a, S>
 where
     S: event_view_state::State,
-    S::IndexedAt: event_view_state::IsSet,
     S::Cid: event_view_state::IsSet,
-    S::Record: event_view_state::IsSet,
-    S::Uri: event_view_state::IsSet,
     S::Author: event_view_state::IsSet,
+    S::Record: event_view_state::IsSet,
+    S::IndexedAt: event_view_state::IsSet,
+    S::Uri: event_view_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> EventView<'a> {
@@ -701,6 +701,29 @@ fn lexicon_doc_co_aktivi_event_defs() -> ::jacquard_lexicon::lexicon::LexiconDoc
                         );
                         map.insert(
                             ::jacquard_common::smol_str::SmolStr::new_static(
+                                "currentUserRsvpUri",
+                            ),
+                            ::jacquard_lexicon::lexicon::LexObjectProperty::String(::jacquard_lexicon::lexicon::LexString {
+                                description: Some(
+                                    ::jacquard_common::CowStr::new_static(
+                                        "The AT-URI of the requesting user's RSVP record for this event",
+                                    ),
+                                ),
+                                format: Some(
+                                    ::jacquard_lexicon::lexicon::LexStringFormat::AtUri,
+                                ),
+                                default: None,
+                                min_length: None,
+                                max_length: None,
+                                min_graphemes: None,
+                                max_graphemes: None,
+                                r#enum: None,
+                                r#const: None,
+                                known_values: None,
+                            }),
+                        );
+                        map.insert(
+                            ::jacquard_common::smol_str::SmolStr::new_static(
                                 "currentUserStatus",
                             ),
                             ::jacquard_lexicon::lexicon::LexObjectProperty::String(::jacquard_lexicon::lexicon::LexString {
@@ -927,51 +950,51 @@ pub mod event_view_basic_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
+        type Cid;
         type Name;
         type Uri;
-        type Cid;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
+        type Cid = Unset;
         type Name = Unset;
         type Uri = Unset;
-        type Cid = Unset;
-    }
-    ///State transition - sets the `name` field to Set
-    pub struct SetName<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetName<S> {}
-    impl<S: State> State for SetName<S> {
-        type Name = Set<members::name>;
-        type Uri = S::Uri;
-        type Cid = S::Cid;
-    }
-    ///State transition - sets the `uri` field to Set
-    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetUri<S> {}
-    impl<S: State> State for SetUri<S> {
-        type Name = S::Name;
-        type Uri = Set<members::uri>;
-        type Cid = S::Cid;
     }
     ///State transition - sets the `cid` field to Set
     pub struct SetCid<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetCid<S> {}
     impl<S: State> State for SetCid<S> {
+        type Cid = Set<members::cid>;
         type Name = S::Name;
         type Uri = S::Uri;
-        type Cid = Set<members::cid>;
+    }
+    ///State transition - sets the `name` field to Set
+    pub struct SetName<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetName<S> {}
+    impl<S: State> State for SetName<S> {
+        type Cid = S::Cid;
+        type Name = Set<members::name>;
+        type Uri = S::Uri;
+    }
+    ///State transition - sets the `uri` field to Set
+    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetUri<S> {}
+    impl<S: State> State for SetUri<S> {
+        type Cid = S::Cid;
+        type Name = S::Name;
+        type Uri = Set<members::uri>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
+        ///Marker type for the `cid` field
+        pub struct cid(());
         ///Marker type for the `name` field
         pub struct name(());
         ///Marker type for the `uri` field
         pub struct uri(());
-        ///Marker type for the `cid` field
-        pub struct cid(());
     }
 }
 
@@ -1124,9 +1147,9 @@ where
 impl<'a, S> EventViewBasicBuilder<'a, S>
 where
     S: event_view_basic_state::State,
+    S::Cid: event_view_basic_state::IsSet,
     S::Name: event_view_basic_state::IsSet,
     S::Uri: event_view_basic_state::IsSet,
-    S::Cid: event_view_basic_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> EventViewBasic<'a> {
@@ -1193,6 +1216,12 @@ pub struct EventViewDetailed<'a> {
     pub author: crate::co_aktivi::actor::ProfileView<'a>,
     #[serde(borrow)]
     pub cid: jacquard_common::types::string::Cid<'a>,
+    /// The AT-URI of the requesting user's RSVP record for this event
+    #[serde(skip_serializing_if = "std::option::Option::is_none")]
+    #[serde(borrow)]
+    pub current_user_rsvp_uri: std::option::Option<
+        jacquard_common::types::string::AtUri<'a>,
+    >,
     /// The RSVP status of the requesting user for this event
     #[serde(skip_serializing_if = "std::option::Option::is_none")]
     #[serde(borrow)]
@@ -1226,85 +1255,85 @@ pub mod event_view_detailed_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
+        type Author;
+        type Record;
+        type Cid;
         type Uri;
         type IndexedAt;
-        type Cid;
-        type Record;
-        type Author;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
+        type Author = Unset;
+        type Record = Unset;
+        type Cid = Unset;
         type Uri = Unset;
         type IndexedAt = Unset;
-        type Cid = Unset;
-        type Record = Unset;
-        type Author = Unset;
-    }
-    ///State transition - sets the `uri` field to Set
-    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetUri<S> {}
-    impl<S: State> State for SetUri<S> {
-        type Uri = Set<members::uri>;
-        type IndexedAt = S::IndexedAt;
-        type Cid = S::Cid;
-        type Record = S::Record;
-        type Author = S::Author;
-    }
-    ///State transition - sets the `indexed_at` field to Set
-    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
-    impl<S: State> State for SetIndexedAt<S> {
-        type Uri = S::Uri;
-        type IndexedAt = Set<members::indexed_at>;
-        type Cid = S::Cid;
-        type Record = S::Record;
-        type Author = S::Author;
-    }
-    ///State transition - sets the `cid` field to Set
-    pub struct SetCid<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetCid<S> {}
-    impl<S: State> State for SetCid<S> {
-        type Uri = S::Uri;
-        type IndexedAt = S::IndexedAt;
-        type Cid = Set<members::cid>;
-        type Record = S::Record;
-        type Author = S::Author;
-    }
-    ///State transition - sets the `record` field to Set
-    pub struct SetRecord<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetRecord<S> {}
-    impl<S: State> State for SetRecord<S> {
-        type Uri = S::Uri;
-        type IndexedAt = S::IndexedAt;
-        type Cid = S::Cid;
-        type Record = Set<members::record>;
-        type Author = S::Author;
     }
     ///State transition - sets the `author` field to Set
     pub struct SetAuthor<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetAuthor<S> {}
     impl<S: State> State for SetAuthor<S> {
+        type Author = Set<members::author>;
+        type Record = S::Record;
+        type Cid = S::Cid;
         type Uri = S::Uri;
         type IndexedAt = S::IndexedAt;
+    }
+    ///State transition - sets the `record` field to Set
+    pub struct SetRecord<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetRecord<S> {}
+    impl<S: State> State for SetRecord<S> {
+        type Author = S::Author;
+        type Record = Set<members::record>;
         type Cid = S::Cid;
+        type Uri = S::Uri;
+        type IndexedAt = S::IndexedAt;
+    }
+    ///State transition - sets the `cid` field to Set
+    pub struct SetCid<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetCid<S> {}
+    impl<S: State> State for SetCid<S> {
+        type Author = S::Author;
         type Record = S::Record;
-        type Author = Set<members::author>;
+        type Cid = Set<members::cid>;
+        type Uri = S::Uri;
+        type IndexedAt = S::IndexedAt;
+    }
+    ///State transition - sets the `uri` field to Set
+    pub struct SetUri<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetUri<S> {}
+    impl<S: State> State for SetUri<S> {
+        type Author = S::Author;
+        type Record = S::Record;
+        type Cid = S::Cid;
+        type Uri = Set<members::uri>;
+        type IndexedAt = S::IndexedAt;
+    }
+    ///State transition - sets the `indexed_at` field to Set
+    pub struct SetIndexedAt<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetIndexedAt<S> {}
+    impl<S: State> State for SetIndexedAt<S> {
+        type Author = S::Author;
+        type Record = S::Record;
+        type Cid = S::Cid;
+        type Uri = S::Uri;
+        type IndexedAt = Set<members::indexed_at>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
+        ///Marker type for the `author` field
+        pub struct author(());
+        ///Marker type for the `record` field
+        pub struct record(());
+        ///Marker type for the `cid` field
+        pub struct cid(());
         ///Marker type for the `uri` field
         pub struct uri(());
         ///Marker type for the `indexed_at` field
         pub struct indexed_at(());
-        ///Marker type for the `cid` field
-        pub struct cid(());
-        ///Marker type for the `record` field
-        pub struct record(());
-        ///Marker type for the `author` field
-        pub struct author(());
     }
 }
 
@@ -1314,6 +1343,7 @@ pub struct EventViewDetailedBuilder<'a, S: event_view_detailed_state::State> {
     __unsafe_private_named: (
         ::core::option::Option<crate::co_aktivi::actor::ProfileView<'a>>,
         ::core::option::Option<jacquard_common::types::string::Cid<'a>>,
+        ::core::option::Option<jacquard_common::types::string::AtUri<'a>>,
         ::core::option::Option<jacquard_common::CowStr<'a>>,
         ::core::option::Option<i64>,
         ::core::option::Option<jacquard_common::types::string::Datetime>,
@@ -1338,6 +1368,7 @@ impl<'a> EventViewDetailedBuilder<'a, event_view_detailed_state::Empty> {
         EventViewDetailedBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: (
+                None,
                 None,
                 None,
                 None,
@@ -1392,18 +1423,18 @@ where
 }
 
 impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
-    /// Set the `currentUserStatus` field (optional)
-    pub fn current_user_status(
+    /// Set the `currentUserRsvpUri` field (optional)
+    pub fn current_user_rsvp_uri(
         mut self,
-        value: impl Into<Option<jacquard_common::CowStr<'a>>>,
+        value: impl Into<Option<jacquard_common::types::string::AtUri<'a>>>,
     ) -> Self {
         self.__unsafe_private_named.2 = value.into();
         self
     }
-    /// Set the `currentUserStatus` field to an Option value (optional)
-    pub fn maybe_current_user_status(
+    /// Set the `currentUserRsvpUri` field to an Option value (optional)
+    pub fn maybe_current_user_rsvp_uri(
         mut self,
-        value: Option<jacquard_common::CowStr<'a>>,
+        value: Option<jacquard_common::types::string::AtUri<'a>>,
     ) -> Self {
         self.__unsafe_private_named.2 = value;
         self
@@ -1411,14 +1442,33 @@ impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
 }
 
 impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
+    /// Set the `currentUserStatus` field (optional)
+    pub fn current_user_status(
+        mut self,
+        value: impl Into<Option<jacquard_common::CowStr<'a>>>,
+    ) -> Self {
+        self.__unsafe_private_named.3 = value.into();
+        self
+    }
+    /// Set the `currentUserStatus` field to an Option value (optional)
+    pub fn maybe_current_user_status(
+        mut self,
+        value: Option<jacquard_common::CowStr<'a>>,
+    ) -> Self {
+        self.__unsafe_private_named.3 = value;
+        self
+    }
+}
+
+impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
     /// Set the `goingCount` field (optional)
     pub fn going_count(mut self, value: impl Into<Option<i64>>) -> Self {
-        self.__unsafe_private_named.3 = value.into();
+        self.__unsafe_private_named.4 = value.into();
         self
     }
     /// Set the `goingCount` field to an Option value (optional)
     pub fn maybe_going_count(mut self, value: Option<i64>) -> Self {
-        self.__unsafe_private_named.3 = value;
+        self.__unsafe_private_named.4 = value;
         self
     }
 }
@@ -1433,7 +1483,7 @@ where
         mut self,
         value: impl Into<jacquard_common::types::string::Datetime>,
     ) -> EventViewDetailedBuilder<'a, event_view_detailed_state::SetIndexedAt<S>> {
-        self.__unsafe_private_named.4 = ::core::option::Option::Some(value.into());
+        self.__unsafe_private_named.5 = ::core::option::Option::Some(value.into());
         EventViewDetailedBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: self.__unsafe_private_named,
@@ -1445,12 +1495,12 @@ where
 impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
     /// Set the `interestedCount` field (optional)
     pub fn interested_count(mut self, value: impl Into<Option<i64>>) -> Self {
-        self.__unsafe_private_named.5 = value.into();
+        self.__unsafe_private_named.6 = value.into();
         self
     }
     /// Set the `interestedCount` field to an Option value (optional)
     pub fn maybe_interested_count(mut self, value: Option<i64>) -> Self {
-        self.__unsafe_private_named.5 = value;
+        self.__unsafe_private_named.6 = value;
         self
     }
 }
@@ -1465,7 +1515,7 @@ where
         mut self,
         value: impl Into<jacquard_common::types::value::Data<'a>>,
     ) -> EventViewDetailedBuilder<'a, event_view_detailed_state::SetRecord<S>> {
-        self.__unsafe_private_named.6 = ::core::option::Option::Some(value.into());
+        self.__unsafe_private_named.7 = ::core::option::Option::Some(value.into());
         EventViewDetailedBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: self.__unsafe_private_named,
@@ -1480,7 +1530,7 @@ impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
         mut self,
         value: impl Into<Option<Vec<crate::co_aktivi::actor::ProfileViewBasic<'a>>>>,
     ) -> Self {
-        self.__unsafe_private_named.7 = value.into();
+        self.__unsafe_private_named.8 = value.into();
         self
     }
     /// Set the `selectedRsvps` field to an Option value (optional)
@@ -1488,7 +1538,7 @@ impl<'a, S: event_view_detailed_state::State> EventViewDetailedBuilder<'a, S> {
         mut self,
         value: Option<Vec<crate::co_aktivi::actor::ProfileViewBasic<'a>>>,
     ) -> Self {
-        self.__unsafe_private_named.7 = value;
+        self.__unsafe_private_named.8 = value;
         self
     }
 }
@@ -1503,7 +1553,7 @@ where
         mut self,
         value: impl Into<jacquard_common::types::string::AtUri<'a>>,
     ) -> EventViewDetailedBuilder<'a, event_view_detailed_state::SetUri<S>> {
-        self.__unsafe_private_named.8 = ::core::option::Option::Some(value.into());
+        self.__unsafe_private_named.9 = ::core::option::Option::Some(value.into());
         EventViewDetailedBuilder {
             _phantom_state: ::core::marker::PhantomData,
             __unsafe_private_named: self.__unsafe_private_named,
@@ -1515,24 +1565,25 @@ where
 impl<'a, S> EventViewDetailedBuilder<'a, S>
 where
     S: event_view_detailed_state::State,
+    S::Author: event_view_detailed_state::IsSet,
+    S::Record: event_view_detailed_state::IsSet,
+    S::Cid: event_view_detailed_state::IsSet,
     S::Uri: event_view_detailed_state::IsSet,
     S::IndexedAt: event_view_detailed_state::IsSet,
-    S::Cid: event_view_detailed_state::IsSet,
-    S::Record: event_view_detailed_state::IsSet,
-    S::Author: event_view_detailed_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> EventViewDetailed<'a> {
         EventViewDetailed {
             author: self.__unsafe_private_named.0.unwrap(),
             cid: self.__unsafe_private_named.1.unwrap(),
-            current_user_status: self.__unsafe_private_named.2,
-            going_count: self.__unsafe_private_named.3,
-            indexed_at: self.__unsafe_private_named.4.unwrap(),
-            interested_count: self.__unsafe_private_named.5,
-            record: self.__unsafe_private_named.6.unwrap(),
-            selected_rsvps: self.__unsafe_private_named.7,
-            uri: self.__unsafe_private_named.8.unwrap(),
+            current_user_rsvp_uri: self.__unsafe_private_named.2,
+            current_user_status: self.__unsafe_private_named.3,
+            going_count: self.__unsafe_private_named.4,
+            indexed_at: self.__unsafe_private_named.5.unwrap(),
+            interested_count: self.__unsafe_private_named.6,
+            record: self.__unsafe_private_named.7.unwrap(),
+            selected_rsvps: self.__unsafe_private_named.8,
+            uri: self.__unsafe_private_named.9.unwrap(),
             extra_data: Default::default(),
         }
     }
@@ -1547,13 +1598,14 @@ where
         EventViewDetailed {
             author: self.__unsafe_private_named.0.unwrap(),
             cid: self.__unsafe_private_named.1.unwrap(),
-            current_user_status: self.__unsafe_private_named.2,
-            going_count: self.__unsafe_private_named.3,
-            indexed_at: self.__unsafe_private_named.4.unwrap(),
-            interested_count: self.__unsafe_private_named.5,
-            record: self.__unsafe_private_named.6.unwrap(),
-            selected_rsvps: self.__unsafe_private_named.7,
-            uri: self.__unsafe_private_named.8.unwrap(),
+            current_user_rsvp_uri: self.__unsafe_private_named.2,
+            current_user_status: self.__unsafe_private_named.3,
+            going_count: self.__unsafe_private_named.4,
+            indexed_at: self.__unsafe_private_named.5.unwrap(),
+            interested_count: self.__unsafe_private_named.6,
+            record: self.__unsafe_private_named.7.unwrap(),
+            selected_rsvps: self.__unsafe_private_named.8,
+            uri: self.__unsafe_private_named.9.unwrap(),
             extra_data: Some(extra_data),
         }
     }
@@ -1604,37 +1656,37 @@ pub mod events_by_date_state {
     }
     /// State trait tracking which required fields have been set
     pub trait State: sealed::Sealed {
-        type Events;
         type Date;
+        type Events;
     }
     /// Empty state - all required fields are unset
     pub struct Empty(());
     impl sealed::Sealed for Empty {}
     impl State for Empty {
-        type Events = Unset;
         type Date = Unset;
-    }
-    ///State transition - sets the `events` field to Set
-    pub struct SetEvents<S: State = Empty>(PhantomData<fn() -> S>);
-    impl<S: State> sealed::Sealed for SetEvents<S> {}
-    impl<S: State> State for SetEvents<S> {
-        type Events = Set<members::events>;
-        type Date = S::Date;
+        type Events = Unset;
     }
     ///State transition - sets the `date` field to Set
     pub struct SetDate<S: State = Empty>(PhantomData<fn() -> S>);
     impl<S: State> sealed::Sealed for SetDate<S> {}
     impl<S: State> State for SetDate<S> {
-        type Events = S::Events;
         type Date = Set<members::date>;
+        type Events = S::Events;
+    }
+    ///State transition - sets the `events` field to Set
+    pub struct SetEvents<S: State = Empty>(PhantomData<fn() -> S>);
+    impl<S: State> sealed::Sealed for SetEvents<S> {}
+    impl<S: State> State for SetEvents<S> {
+        type Date = S::Date;
+        type Events = Set<members::events>;
     }
     /// Marker types for field names
     #[allow(non_camel_case_types)]
     pub mod members {
-        ///Marker type for the `events` field
-        pub struct events(());
         ///Marker type for the `date` field
         pub struct date(());
+        ///Marker type for the `events` field
+        pub struct events(());
     }
 }
 
@@ -1707,8 +1759,8 @@ where
 impl<'a, S> EventsByDateBuilder<'a, S>
 where
     S: events_by_date_state::State,
-    S::Events: events_by_date_state::IsSet,
     S::Date: events_by_date_state::IsSet,
+    S::Events: events_by_date_state::IsSet,
 {
     /// Build the final struct
     pub fn build(self) -> EventsByDate<'a> {

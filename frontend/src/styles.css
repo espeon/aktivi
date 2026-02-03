@@ -58,7 +58,7 @@ code {
   --secondary: hsl(237 16.24% 22.94%);
   --secondary-foreground: hsl(226 63.93% 88.04%);
   --muted: hsl(237 16.24% 22.94%);
-  --muted-foreground: hsl(227 35.29% 80%);
+  --muted-foreground: hsl(227 5.29% 70%);
   --accent: hsl(237 16.24% 22.94%);
   --accent-foreground: hsl(226 63.93% 88.04%);
   --destructive: hsl(343 81.25% 74.9%);

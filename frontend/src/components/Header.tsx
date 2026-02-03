@@ -1,6 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Home, Calendar, Menu, X, LogIn, LogOut, Plus } from "lucide-react";
+import {
+  Home,
+  Calendar,
+  Menu,
+  X,
+  LogIn,
+  LogOut,
+  Plus,
+  LucideHamburger,
+  LucideSidebar,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme";
 import { useQt } from "@/lib/qt";
@@ -68,16 +78,16 @@ export default function Header() {
           className={
             "container flex items-center transition-all border" +
             (scrolled
-              ? " px-8 h-14 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/70 rounded-full mt-2"
-              : " px-0 h-16 mt-4 border-background")
+              ? " px-2 md:px-8 h-14 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/70 rounded-full mt-2"
+              : " md:px-4 h-16 mt-4 border-background")
           }
         >
           <button
             onClick={() => setIsOpen(true)}
-            className="mr-4 p-2 hover:bg-accent rounded-md transition-colors md:hidden"
+            className="mr-4 p-2 hover:bg-accent rounded-full transition-colors md:hidden"
             aria-label="open menu"
           >
-            <Menu size={20} />
+            <LucideSidebar size={20} />
           </button>
 
           <div className="flex items-center gap-6 flex-1">
@@ -125,25 +135,6 @@ export default function Header() {
                     <Plus />
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    qt.client
-                      .get("co.aktivi.actor.getProfileView", {
-                        params: { actor: qt.did as Did },
-                      })
-                      .then((res) => {
-                        if (isXRPCErrorPayload(res.data)) {
-                          throw res.data.error;
-                        }
-                        alert(
-                          `logged in as: ${res.data.profile?.handle || qt.did}`,
-                        );
-                      })
-                  }
-                >
-                  am i logged in acktually
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">

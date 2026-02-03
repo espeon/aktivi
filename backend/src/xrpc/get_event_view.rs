@@ -226,7 +226,7 @@ pub async fn handle(
     let current_user_rsvp = match user_did_opt {
         Some(user_did) => sqlx::query!(
             r#"
-            SELECT status
+            SELECT status, uri
             FROM rsvps
             WHERE did = $1
             AND subject_uri = $2
@@ -265,7 +265,10 @@ pub async fn handle(
         },
         indexed_at: jacquard_common::types::string::Datetime::new(event.indexed_at.fixed_offset()),
         extra_data: None,
-        current_user_status: current_user_rsvp.map(|r| r.status.into()),
+        current_user_status: current_user_rsvp.as_ref().map(|r| r.status.clone().into()),
+        current_user_rsvp_uri: current_user_rsvp
+            .map(|r| AtUri::new_owned(&r.uri).ok())
+            .flatten(),
     };
 
     Ok(Json(GetEventViewOutput {

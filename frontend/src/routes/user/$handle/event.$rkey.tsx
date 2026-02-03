@@ -15,9 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Throbber from "@/components/ui/throbber";
 import { useQt } from "@/lib/qt";
 import type { EventViewDetailed } from "@/lex/types/co/aktivi/event/defs";
-import type { ResourceUri } from "@atcute/lexicons";
+import type { ActorIdentifier, ResourceUri } from "@atcute/lexicons";
 import ReactMarkdown from "react-markdown";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/user/$handle/event/$rkey")({
@@ -31,13 +30,26 @@ const ModeDisplay = {
 };
 
 function YesNoMaybe({
-  rkey,
+  uri,
+  cid,
+  prevrkey,
   currentStatus,
+  currentRsvpUri,
+  cancelDir = "start",
 }: {
-  rkey: string;
+  uri: string;
+  cid: string;
+  prevrkey?: string;
   currentStatus?: string | null;
+  currentRsvpUri?: string | null;
+  cancelDir: "start" | "end";
 }) {
+  console.log(uri);
   const qt = useQt();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [rsvpUri, setRsvpUri] = React.useState<string | null>(
+    currentRsvpUri || null,
+  );
 
   // Map RSVP status to button state
   const getInitialState = (
@@ -54,29 +66,95 @@ function YesNoMaybe({
     getInitialState(currentStatus),
   );
 
-  const handleYes = () => {
-    setSelected("yes");
-    // handle yes action
+  const submitRsvp = async (status: "yes" | "maybe" | "no") => {
+    if (!qt.did) return;
+
+    setIsLoading(true);
+    try {
+      const rsvpStatus =
+        status === "yes"
+          ? "community.lexicon.calendar.rsvp#going"
+          : status === "maybe"
+            ? "community.lexicon.calendar.rsvp#interested"
+            : "community.lexicon.calendar.rsvp#notgoing";
+
+      const rkey = prevrkey || `${Date.now()}`;
+      try {
+        const response = await qt.client.post("com.atproto.repo.putRecord", {
+          input: {
+            repo: qt.did as ActorIdentifier,
+            collection: "community.lexicon.calendar.rsvp",
+            rkey,
+            record: {
+              $type: "community.lexicon.calendar.rsvp",
+              subject: { uri, cid },
+              status: rsvpStatus,
+              createdAt: new Date().toISOString(),
+            },
+          },
+        });
+        console.log(response.data);
+        setRsvpUri(`at://${qt.did}/community.lexicon.calendar.rsvp/${rkey}`);
+        setSelected(status);
+      } catch (e) {
+        console.error("Error submitting RSVP:", e);
+      }
+    } catch (error) {
+      console.error("Failed to submit RSVP:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleMaybe = () => {
-    setSelected("maybe");
-    // handle maybe action
-  };
+  const handleYes = () => submitRsvp("yes");
+  const handleMaybe = () => submitRsvp("maybe");
+  const handleNo = () => submitRsvp("no");
 
-  const handleNo = () => {
-    setSelected("no");
-    // handle no action
-  };
+  const handleClear = async () => {
+    if (!qt.did || !rsvpUri) return;
 
-  const handleClear = () => {
-    setSelected(null);
-    // handle clear action
+    setIsLoading(true);
+    try {
+      // Parse the rkey from the URI (format: at://did/collection/rkey)
+      const uriParts = rsvpUri.split("/");
+      const rkey = prevrkey || uriParts[uriParts.length - 1];
+
+      await qt.client.post("com.atproto.repo.deleteRecord", {
+        input: {
+          repo: qt.did! as ActorIdentifier,
+          collection: "community.lexicon.calendar.rsvp",
+          rkey,
+        },
+      });
+
+      setRsvpUri(null);
+      setSelected(null);
+    } catch (error) {
+      console.error("Failed to clear RSVP:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex items-center gap-4 flex-1">
-      <div className="relative flex bg-muted-foreground/5 rounded-full p-1 gap-1 flex-1">
+      {cancelDir === "start" &&
+        (selected ? (
+          <div
+            className="rounded-full w-8 h-8 relative z-10 transition-all cursor-pointer flex items-center justify-center text-muted-foreground hover:text-foreground animate-in fade-in"
+            onClick={handleClear}
+          >
+            <X size={16} />
+          </div>
+        ) : (
+          <X size={16} className="opacity-0 w-8 h-8" />
+        ))}
+      <div
+        className={cn(
+          "relative flex bg-muted-foreground/5 rounded-full p-1 gap-1 flex-1",
+          isLoading && "opacity-50 pointer-events-none",
+        )}
+      >
         <div
           className="absolute inset-y-1 bg-foreground rounded-full transition-all duration-300 ease-out"
           style={{
@@ -120,16 +198,17 @@ function YesNoMaybe({
           No
         </div>
       </div>
-      {selected ? (
-        <div
-          className="rounded-full w-8 h-8 relative z-10 transition-all cursor-pointer flex items-center justify-center text-muted-foreground hover:text-foreground animate-in fade-in"
-          onClick={handleClear}
-        >
-          <X size={16} />
-        </div>
-      ) : (
-        <X size={16} className="opacity-0 w-8 h-8" />
-      )}
+      {cancelDir === "end" &&
+        (selected ? (
+          <div
+            className="rounded-full w-8 h-8 relative z-10 transition-all cursor-pointer flex items-center justify-center text-muted-foreground hover:text-foreground animate-in fade-in"
+            onClick={handleClear}
+          >
+            <X size={16} />
+          </div>
+        ) : (
+          <X size={16} className="opacity-0 w-8 h-8" />
+        ))}
     </div>
   );
 }
@@ -348,16 +427,6 @@ function EventPage() {
   return (
     <div className="min-h-screen h-full min-w-full flex flex-col items-center bg-background px-4">
       <div className="container py-12 max-w-4xl">
-        {/* back button */}
-        <Link
-          to="/user/$handle"
-          params={{ handle }}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          back to profile
-        </Link>
-
         {/* event header */}
         <div className="mb-12">
           <div className="flex items-start gap-6 mb-8">
@@ -369,7 +438,7 @@ function EventPage() {
             </div>*/}
 
             <div className="flex-1 space-y-4">
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
                 {record.name}
               </h1>
 
@@ -428,35 +497,69 @@ function EventPage() {
           {/* event meta */}
           <div className="grid gap-6">
             {/* date/time */}
-            {startsAt && (
+            {startsAt && endsAt && startsAt.getDay() != endsAt.getDay() ? (
               <div className="flex items-start gap-4">
                 <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-medium text-lg">
-                    {startsAt.toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </div>
-                  <div className="text-muted-foreground">
-                    {startsAt.toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                    {endsAt && (
-                      <>
-                        {" – "}
-                        {endsAt.toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </>
-                    )}
+                  <div className="font-medium text-lg flex flex-col">
+                    <p>
+                      {startsAt.toLocaleString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">to</span>{" "}
+                      {endsAt.toLocaleString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      <span className="text-muted-foreground">
+                        ({Math.abs(endsAt.getDay() - startsAt.getDay())} days)
+                      </span>
+                    </p>
                   </div>
                 </div>
               </div>
+            ) : (
+              startsAt && (
+                <div className="flex items-start gap-4">
+                  <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-lg">
+                      {startsAt.toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </div>
+                    <div className="text-muted-foreground">
+                      {startsAt.toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                      {endsAt && (
+                        <>
+                          {" – "}
+                          {endsAt.toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
             )}
 
             {/* rsvp count */}
@@ -499,9 +602,8 @@ function EventPage() {
                             </Avatar>
                           )}
                         </div>
-                        {eventData.goingCount -
-                          eventData.selectedRsvps.length ==
-                          0 && eventData.goingCount + " "}
+                        {eventData.goingCount}{" "}
+                        {eventData.goingCount === 1 ? "person" : "people"}{" "}
                         going, {eventData.interestedCount} interested
                       </div>
                     ) : (
@@ -517,13 +619,11 @@ function EventPage() {
 
             {/* locations */}
             {locations && locations.length > 0 && (
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 text-muted-foreground">
                 <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   {locations.map((location, idx) => (
-                    <div key={idx} className="text-muted-foreground">
-                      {formatLocation(location)}
-                    </div>
+                    <div key={idx}>{formatLocation(location)}</div>
                   ))}{" "}
                   (
                   {ModeDisplay[record.mode as keyof typeof ModeDisplay] ||
@@ -535,12 +635,19 @@ function EventPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pb-12">
+        <div className="flex flex-row items-center justify-between gap-4 pb-12">
           <h3 className="text-2xl font-semibold">Are you going?</h3>
-          <div className="max-w-xs">
+          <div className="h-0 min-w-8 border-t shrink-0 flex-0" />
+          <div className="max-w-xs flex-1">
             <YesNoMaybe
-              rkey={record.rkey}
+              cid={eventData.cid}
+              uri={eventData.uri}
+              prevrkey={
+                eventData.currentUserRsvpUri?.split("/").pop() || undefined
+              }
               currentStatus={eventData.currentUserStatus}
+              currentRsvpUri={eventData.currentUserRsvpUri}
+              cancelDir="start"
             />
           </div>
         </div>
@@ -548,7 +655,7 @@ function EventPage() {
         {/* description */}
         {record.description && (
           <div className="bg-card border-2 border-border rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-4">about</h2>
+            <h2 className="text-2xl font-bold mb-4">About</h2>
             <div className="text-lg text-foreground/80 prose prose-lg dark:prose-invert max-w-none">
               <ReactMarkdown>{record.description}</ReactMarkdown>
             </div>
